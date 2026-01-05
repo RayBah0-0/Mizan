@@ -131,6 +131,20 @@ export async function createPremiumToken() {
   return response.json();
 }
 
+export async function createPremiumTokenFromStripe(stripeSessionId: string) {
+  const response = await fetch(`${API_URL}/auth/premium/create-from-stripe`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ stripeSessionId })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create activation token from Stripe session');
+  }
+
+  return response.json();
+}
+
 export async function redeemPremiumToken(token: string) {
   const response = await fetch(`${API_URL}/auth/premium/redeem`, {
     method: 'POST',

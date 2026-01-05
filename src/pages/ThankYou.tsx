@@ -1,16 +1,38 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HeartHandshake, Sparkles, LockOpen } from 'lucide-react';
+import { createPremiumTokenFromStripe } from '@/utils/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ThankYou() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const token = searchParams.get('token') || '';
+  const { user } = useAuth();
+  const stripeSessionId = searchParams.get('token') || '';
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [activationToken, setActivationToken] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (stripeSessionId && user && !activationToken && !isGenerating) {
+      setIsGenerating(true);
+      createPremiumTokenFromStripe(stripeSessionId)
+        .then((result) => {
+          setActivationToken(result.token);
+        })
+        .catch((err) => {
+          setError(err.message || 'Failed to generate activation code');
+        })
+        .finally(() => {
+          setIsGenerating(false);
+        });
+    }
+  }, [stripeSessionId, user, activationToken, isGenerating]);
 
   const handleAccept = () => {
-    if (!token) return;
-    navigate(`/getpremium-${encodeURIComponent(token)}`);
+    if (!activationToken) return;
+    navigate(`/getpremium-${encodeURIComponent(activationToken)}`);
   };
 
   return (
@@ -50,15 +72,27 @@ export default function ThankYou() {
 
           <button
             onClick={handleAccept}
-            disabled={!token}
+            disabled={!activationToken || isGenerating}
             className="mt-6 px-6 py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-all duration-300 disabled:opacity-50"
           >
-            {token ? 'Accept your 1 year of Premium' : 'Missing activation token'}
+            {isGenerating ? 'Generating activation code...' : activationToken ? 'Accept your 1 year of Premium' : 'Missing activation token'}
           </button>
 
-          {!token && (
+          {!stripeSessionId && !isGenerating && (
             <p className="text-xs text-[#6a6a6d] mt-2">
               We could not find an activation token in the link. Please open the link from your payment confirmation.
+            </p>
+          )}
+          
+          {error && (
+            <p className="text-xs text-red-400 mt-2">
+              {error}
+            </p>
+          )}
+          
+          {!user && stripeSessionId && (
+            <p className="text-xs text-[#6a6a6d] mt-2">
+              Please log in to claim your premium.
             </p>
           )}
         </div>

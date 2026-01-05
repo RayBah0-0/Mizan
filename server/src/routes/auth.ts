@@ -295,6 +295,37 @@ router.post('/premium/create-token', authMiddleware, (req: Request, res: Respons
   }
 });
 
+// Create activation token from Stripe session (for post-payment flow)
+router.post('/premium/create-from-stripe', authMiddleware, (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { stripeSessionId } = req.body;
+
+    if (!stripeSessionId) {
+      return res.status(400).json({ error: 'Stripe session ID required' });
+    }
+
+    // In production, validate the session with Stripe API here
+    // For now, just generate the token
+    const token = generatePremiumToken();
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 2).toISOString();
+
+    run(
+      'INSERT INTO premium_tokens (token, plan, created_for_user_id, expires_at) VALUES (?, ?, ?, ?)',
+      [token, 'premium', userId, expiresAt]
+    );
+
+    res.json({
+      success: true,
+      token,
+      redeemPath: `/getpremium-${token}`
+    });
+  } catch (error) {
+    console.error('Create token from Stripe error:', error);
+    res.status(500).json({ error: 'Failed to create activation token' });
+  }
+});
+
 // Redeem a premium activation token (single-use)
 router.post('/premium/redeem', authMiddleware, (req: Request, res: Response) => {
   try {
