@@ -118,7 +118,20 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Username not found. Please check your credentials or register.' });
     }
 
-    const valid = await comparePassword(password, user.password_hash);
+    console.log('User found:', { id: user.id, username: user.username, hasPasswordHash: !!user.password_hash });
+
+    if (!user.password_hash) {
+      return res.status(401).json({ error: 'Account setup incomplete. Please register again.' });
+    }
+
+    let valid = false;
+    try {
+      valid = await comparePassword(password, user.password_hash);
+    } catch (compareErr) {
+      console.error('Password comparison error:', compareErr);
+      return res.status(500).json({ error: 'Authentication error. Please try again.' });
+    }
+
     if (!valid) {
       return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }
