@@ -14,9 +14,10 @@ export default function Access() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   const [errorShake, setErrorShake] = useState(false);
   const navigate = useNavigate();
-  const { user, signIn, signUp } = useSupabaseAuth();
+  const { user, signIn, signUp, resendConfirmation } = useSupabaseAuth();
 
   useEffect(() => {
     // Auto-redirect if user already logged in
@@ -78,6 +79,28 @@ export default function Access() {
       setErrorShake(true);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setError('');
+    setErrorShake(false);
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail) {
+      setError('Enter your email, then click resend');
+      setErrorShake(true);
+      return;
+    }
+
+    setIsResending(true);
+    try {
+      await resendConfirmation(trimmedEmail);
+      setError('Confirmation email resent. Check your inbox.');
+    } catch (err: any) {
+      setError(err?.message || 'Unable to resend confirmation email');
+      setErrorShake(true);
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -230,6 +253,29 @@ export default function Access() {
                   'Login'
                 )}
               </motion.button>
+
+              {isRegistering && (
+                <motion.button
+                  type="button"
+                  onClick={handleResend}
+                  disabled={isLoading || isResending}
+                  className="w-full py-3 bg-transparent border border-[#1a1a1d] text-[#5a5a5d] text-xs tracking-[0.15em] uppercase transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02, borderColor: '#2a2a2d', color: '#c4c4c6' }}
+                  whileTap={{ scale: 0.98 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.33 }}
+                >
+                  {isResending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Resending...</span>
+                    </>
+                  ) : (
+                    'Resend Confirmation Email'
+                  )}
+                </motion.button>
+              )}
 
               <motion.button
                 type="button"

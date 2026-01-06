@@ -17,6 +17,7 @@ interface AuthContextType {
   session: Session | null;
   signUp: (email: string, password: string, username: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
+  resendConfirmation: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoading: boolean;
 }
@@ -111,8 +112,19 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resendConfirmation = async (email: string) => {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email
+    });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  };
+
   return (
-    <SupabaseAuthContext.Provider value={{ user, session, signUp, signIn, signOut, isLoading }}>
+    <SupabaseAuthContext.Provider value={{ user, session, signUp, signIn, resendConfirmation, signOut, isLoading }}>
       {children}
     </SupabaseAuthContext.Provider>
   );
