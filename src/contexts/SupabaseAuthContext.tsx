@@ -61,6 +61,22 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
     return () => subscription?.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    // Handle OAuth callback from email verification/password reset
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setSession(session);
+        if (session.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            username: session.user.user_metadata?.username
+          });
+        }
+      }
+    });
+  }, []);
+
   const signUp = async (email: string, password: string, username: string) => {
     const { error } = await supabase.auth.signUp({
       email,
