@@ -5,6 +5,7 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const redirectUrl = import.meta.env.VITE_SUPABASE_REDIRECT_URL || window.location.origin;
 
 interface User {
   id: string;
@@ -83,6 +84,7 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
+        emailRedirectTo: `${redirectUrl}/`,
         data: {
           username
         }
@@ -115,7 +117,10 @@ export function SupabaseAuthProvider({ children }: { children: ReactNode }) {
   const resendConfirmation = async (email: string) => {
     const { error } = await supabase.auth.resend({
       type: 'signup',
-      email
+      email,
+      options: {
+        emailRedirectTo: `${redirectUrl}/`
+      }
     });
 
     if (error) {
