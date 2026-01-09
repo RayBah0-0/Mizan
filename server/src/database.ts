@@ -52,7 +52,7 @@ export async function initDatabase() {
   `);
 
   // Cycles table - stores 7-day cycle progress
-  exec(`
+  await exec(`
     CREATE TABLE IF NOT EXISTS cycles (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER NOT NULL,
@@ -67,7 +67,7 @@ export async function initDatabase() {
   `);
 
   // Settings table
-  exec(`
+  await exec(`
     CREATE TABLE IF NOT EXISTS settings (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER UNIQUE NOT NULL,
@@ -78,7 +78,7 @@ export async function initDatabase() {
   `);
 
   // Premium tokens table - single use activation tokens
-  exec(`
+  await exec(`
     CREATE TABLE IF NOT EXISTS premium_tokens (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       token TEXT UNIQUE NOT NULL,
@@ -90,53 +90,6 @@ export async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (created_for_user_id) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (redeemed_by_user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  console.log('✅ Database initialized');
-}
-
-export function getDB() {
-  
-  // Cycles table
-  await exec(`
-    CREATE TABLE IF NOT EXISTS cycles (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER NOT NULL,
-      cycle_number INTEGER NOT NULL,
-      days TEXT NOT NULL,
-      completed BOOLEAN DEFAULT 0,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      UNIQUE(user_id, cycle_number)
-    )
-  `);
-
-  // Settings table
-  await exec(`
-    CREATE TABLE IF NOT EXISTS settings (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id INTEGER UNIQUE NOT NULL,
-      settings TEXT NOT NULL,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-    )
-  `);
-
-  // Premium tokens table
-  await exec(`
-    CREATE TABLE IF NOT EXISTS premium_tokens (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      token TEXT UNIQUE NOT NULL,
-      plan TEXT NOT NULL,
-      created_for_user_id INTEGER,
-      expires_at DATETIME NOT NULL,
-      redeemed_at DATETIME,
-      redeemed_by_user_id INTEGER,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (created_for_user_id) REFERENCES users(id) ON DELETE SET NULL,
-      FOREIGN KEY (redeemed_by_user_id) REFERENCES users(id) ON DELETE SET NULL
     )
   `);
 

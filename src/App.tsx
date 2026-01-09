@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Landing from './pages/Landing';
-import Access from './pages/Access';
 import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
 import Status from './pages/Status';
@@ -13,7 +12,7 @@ import ActivatePremium from './pages/ActivatePremium';
 import ThankYou from './pages/ThankYou';
 import RedeemPremium from './pages/RedeemPremium';
 import UserNotRegisteredError from './components/UserNotRegisteredError';
-import { useSupabaseAuth } from './contexts/SupabaseAuthContext';
+import { useClerkAuth } from './contexts/ClerkAuthContext';
 import { syncFromServer, readCheckins } from './utils/storage';
 import { 
   getNotificationsEnabled, 
@@ -21,7 +20,7 @@ import {
 } from './utils/notifications';
 
 export default function App() {
-  const { user } = useSupabaseAuth();
+  const { user } = useClerkAuth();
 
   useEffect(() => {
     // Sync data from server on app load if authenticated
@@ -55,7 +54,6 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
-        <Route path="/access" element={<Access />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/checkin" element={<CheckIn />} />
         <Route path="/status" element={<Status />} />

@@ -5,7 +5,7 @@ import { LogOut, Bell, BellOff } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
 import { clearAll } from '@/utils/storage';
 import { readSettings, writeSettings } from '@/utils/storage';
-import { useAuth } from '@/contexts/AuthContext';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 import { setAccessCode as apiSetAccessCode, getUserInfo } from '@/utils/api';
 import { applyTheme } from '@/utils/theme';
 import { 
@@ -51,7 +51,7 @@ export default function Settings() {
   const [customCategories, setCustomCategories] = useState('');
   const [featureFlags, setFeatureFlags] = useState({ prioritySupport: false, earlyAccess: false, supportChannel: 'discord' as 'discord' | 'email' | 'none' });
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, signOut } = useClerkAuth();
 
   useEffect(() => {
     // Check notification status
@@ -246,11 +246,11 @@ export default function Settings() {
               <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
                 <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Account</h2>
                 <div className="space-y-3">
-                  <p className="text-[#5a5a5d] text-sm">Logged in as <span className="text-[#8a8a8d]">{user.username}</span></p>
+                  <p className="text-[#5a5a5d] text-sm">Logged in as <span className="text-[#8a8a8d]">{user.email}</span></p>
                   <button
                     type="button"
                     onClick={() => {
-                      logout();
+                      signOut();
                       navigate(createPageUrl('Access'));
                     }}
                     className="flex items-center gap-2 text-[#6a6a6d] hover:text-[#c4c4c6] text-sm transition-colors"

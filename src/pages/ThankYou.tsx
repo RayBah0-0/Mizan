@@ -3,12 +3,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HeartHandshake, Sparkles, LockOpen } from 'lucide-react';
 import { createPremiumTokenFromStripe } from '@/utils/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 export default function ThankYou() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useClerkAuth();
   const stripeSessionId = searchParams.get('token') || '';
   const [isGenerating, setIsGenerating] = useState(false);
   const [activationToken, setActivationToken] = useState('');

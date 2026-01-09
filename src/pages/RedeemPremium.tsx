@@ -4,13 +4,13 @@ import { motion } from 'framer-motion';
 import { Crown, AlertTriangle, ShieldCheck } from 'lucide-react';
 import ConfettiBurst from '@/components/ConfettiBurst';
 import { redeemPremiumToken } from '@/utils/api';
-import { useAuth } from '@/contexts/AuthContext';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 import { createPageUrl } from '@/utils/urls';
 
 export default function RedeemPremium() {
   const { token: rawToken } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useClerkAuth();
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
 

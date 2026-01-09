@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@clerk/clerk-react": "^5.59.3",
     "@libsql/client": "^0.14.0",
     "@supabase/supabase-js": "^2.89.0",
     "bcrypt": "^5.1.1",

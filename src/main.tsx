@@ -1,11 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-import { SupabaseAuthProvider } from './contexts/SupabaseAuthContext';
+import { ClerkProvider } from '@clerk/clerk-react';
+import { ClerkAuthProvider } from './contexts/ClerkAuthContext';
 import App from './App';
 import './index.css';
 import { readSettings } from './utils/storage';
 import { applyTheme } from './utils/theme';
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 // Apply saved theme before rendering to avoid flash
 try {
@@ -17,11 +20,13 @@ try {
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <SupabaseAuthProvider>
-        <App />
-      </SupabaseAuthProvider>
-    </BrowserRouter>
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <BrowserRouter>
+        <ClerkAuthProvider>
+          <App />
+        </ClerkAuthProvider>
+      </BrowserRouter>
+    </ClerkProvider>
   </React.StrictMode>
 );
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, CloudOff, RefreshCw } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 export default function SyncStatus() {
-  const { user } = useAuth();
+  const { user } = useClerkAuth();
   const [lastSync, setLastSync] = useState<string | null>(null);
 
   useEffect(() => {

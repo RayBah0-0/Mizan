@@ -1,7 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { createPageUrl } from '@/utils/urls';
+import { SignInButton, SignUpButton } from '@clerk/clerk-react';
 
 const AnimatedText = ({ children, delay = 0 }: { children: string; delay?: number }) => {
   const words = children.split(' ');
@@ -65,16 +64,13 @@ export default function Landing() {
           initial={{ opacity: 0, y: 10 }} 
           animate={{ opacity: 1, y: 0 }} 
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="flex justify-center"
+          className="flex gap-4 justify-center"
         >
-          <Link to={createPageUrl('Access')}>
+          <SignInButton mode="modal">
             <motion.button 
               className="group relative px-8 py-4 bg-[#0f0f12] border border-[#2a2a2d] text-[#c4c4c6] text-sm tracking-[0.2em] uppercase transition-all duration-500 overflow-hidden"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              onHoverStart={() => {
-                // Glow effect on hover
-              }}
               onMouseEnter={(e) => {
                 const elem = e.currentTarget;
                 elem.style.borderColor = '#3a3a3d';
@@ -88,7 +84,7 @@ export default function Landing() {
                 elem.style.boxShadow = 'none';
               }}
             >
-              <span className="relative z-10">Begin</span>
+              <span className="relative z-10">Sign In</span>
               <motion.div 
                 className="absolute inset-0 bg-gradient-to-r from-[#1a2f23]/0 via-[#1a2f23]/20 to-[#1a2f23]/0"
                 initial={{ opacity: 0 }}
@@ -96,7 +92,33 @@ export default function Landing() {
                 transition={{ duration: 0.5 }}
               />
             </motion.button>
-          </Link>
+          </SignInButton>
+          
+          <SignUpButton mode="modal">
+            <motion.button 
+              className="group relative px-8 py-4 bg-[#2d4a3a] border border-[#3d5a4a] text-[#0a0a0a] text-sm tracking-[0.2em] uppercase transition-all duration-500 overflow-hidden"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onMouseEnter={(e) => {
+                const elem = e.currentTarget;
+                elem.style.backgroundColor = '#3d5a4a';
+                elem.style.boxShadow = '0 0 20px rgba(61, 217, 143, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                const elem = e.currentTarget;
+                elem.style.backgroundColor = '#2d4a3a';
+                elem.style.boxShadow = 'none';
+              }}
+            >
+              <span className="relative z-10">Get Started</span>
+              <motion.div 
+                className="absolute inset-0 bg-gradient-to-r from-[#3dd98f]/0 via-[#3dd98f]/20 to-[#3dd98f]/0"
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+              />
+            </motion.button>
+          </SignUpButton>
         </motion.div>
       </motion.div>
 

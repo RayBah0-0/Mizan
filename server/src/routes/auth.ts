@@ -118,6 +118,9 @@ router.post('/login', async (req: Request, res: Response) => {
     }
 
     const user = result.rows[0];
+    const userId = Number(user.id);
+
+    const passwordHash = String(user.password_hash);
 
     console.log('User found:', { id: user.id, username: user.username, hasPasswordHash: !!user.password_hash });
 
@@ -127,7 +130,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     let valid = false;
     try {
-      valid = await comparePassword(password, user.password_hash);
+      valid = await comparePassword(password, passwordHash);
     } catch (compareErr) {
       console.error('Password comparison error:', compareErr);
       return res.status(500).json({ error: 'Authentication error. Please try again.' });
@@ -137,11 +140,11 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Incorrect password. Please try again.' });
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(userId);
 
     res.json({
       token,
-      user: { id: user.id, username: user.username },
+      user: { id: userId, username: user.username },
       subscription: {
         tier: user.subscription_tier || 'free',
         trialEndsAt: user.trial_ends_at,
@@ -173,14 +176,15 @@ router.post('/login-code', async (req: Request, res: Response) => {
     }
 
     const user = result.rows[0];
+    const userId = Number(user.id);
 
-    const token = generateToken(user.id);
+    const token = generateToken(userId);
 
     console.log('Login successful for user:', user.username);
 
     res.json({
       token,
-      user: { id: user.id, username: user.username },
+      user: { id: userId, username: user.username },
       subscription: {
         tier: user.subscription_tier || 'free',
         trialEndsAt: user.trial_ends_at,
@@ -343,7 +347,7 @@ router.post('/premium/create-from-stripe', authMiddleware, async (req: Request, 
 });
 
 // Redeem a premium activation token (single-use)
-router.post('/premium/redeem', authMiddleware, (req: Request, res: Response) => {
+router.post('/premium/redeem', authMiddleware, async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;
     const { token } = req.body;
