@@ -1,7 +1,4 @@
 {
-  "env": {
-    "VITE_CLERK_PUBLISHABLE_KEY": "@vite_clerk_publishable_key"
-  },
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ]
