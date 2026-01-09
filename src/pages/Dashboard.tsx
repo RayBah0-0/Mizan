@@ -32,15 +32,23 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { cyclesCompleted, currentProgress } = useCycle();
   const [showPremiumActivated, setShowPremiumActivated] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
 
   // Handle Stripe redirect on component mount
   useEffect(() => {
     handleStripeRedirect();
   }, []);
 
-  const handleActivatePremium = () => {
+  const handleActivatePremium = async () => {
+    setIsActivating(true);
+
+    // Simulate activation process (like Stripe's animation timing)
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     activatePremium();
     setShowPremiumActivated(true);
+    setIsActivating(false);
+
     // Hide confirmation after 3 seconds
     setTimeout(() => setShowPremiumActivated(false), 3000);
   };
@@ -127,9 +135,42 @@ export default function Dashboard() {
               </div>
               <button
                 onClick={handleActivatePremium}
-                className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] text-sm font-medium rounded transition-colors"
+                disabled={isActivating}
+                className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] disabled:bg-[#2d4a3a] text-[#0a0a0a] text-sm font-medium rounded transition-all duration-300 flex items-center gap-2 min-w-[120px] justify-center"
               >
-                Activate Premium
+                {isActivating ? (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    className="flex items-center gap-2"
+                  >
+                    <motion.svg
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 1 }}
+                      transition={{ duration: 0.5, delay: 0.2, ease: "easeInOut" }}
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-[#0a0a0a]"
+                    >
+                      <motion.path
+                        d="M20 6L9 17L4 12"
+                        initial={{ pathLength: 0 }}
+                        animate={{ pathLength: 1 }}
+                        transition={{ duration: 0.5, delay: 0.2, ease: "easeInOut" }}
+                      />
+                    </motion.svg>
+                    <span>Activated</span>
+                  </motion.div>
+                ) : (
+                  <span>Activate Premium</span>
+                )}
               </button>
             </div>
           </motion.div>
