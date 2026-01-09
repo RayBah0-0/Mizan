@@ -11,7 +11,10 @@ const app = express();
 const PORT = Number(process.env.PORT) || 3002;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['https://mizanproject.vercel.app', 'http://localhost:5173', 'http://localhost:5174'],
+  credentials: true
+}));
 app.use(express.json());
 
 // Initialize database
