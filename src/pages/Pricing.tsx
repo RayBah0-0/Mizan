@@ -30,7 +30,7 @@ export default function Pricing() {
   const handleUpgrade = () => {
     // Stripe should redirect to: https://yourdomain.com/thank-you?token={CHECKOUT_SESSION_ID}
     // Configure this in your Stripe Dashboard under Payment Link settings
-    window.open('https://buy.stripe.com/test_9B66oHf4r6eoblj0uVfUQ00', '_blank');
+    window.open('https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01', '_blank');
   };
 
   return (
