@@ -35,7 +35,7 @@ export function isPremiumExpired(): boolean {
   return now > expiry;
 }
 
-export function activatePremium(): void {
+export function activatePremium(): string {
   const oneYearFromNow = new Date();
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
@@ -44,13 +44,8 @@ export function activatePremium(): void {
   localStorage.setItem("premium_activation_code", generateActivationCode());
   localStorage.removeItem("premium_pending");
 
-  // Show activation code (in real app, this would be emailed)
-  const code = localStorage.getItem("premium_activation_code");
-  if (code) {
-    setTimeout(() => {
-      alert(`Premium Activated!\n\nBackup Activation Code: ${code}\n\nSave this code in case you need to reactivate premium.`);
-    }, 1000);
-  }
+  // Return the code instead of showing alert
+  return localStorage.getItem("premium_activation_code") || "";
 }
 
 export function getActivationCode(): string | null {
