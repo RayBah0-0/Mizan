@@ -1,14 +1,8 @@
 {
   "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "TURSO_DATABASE_URL": "@turso_database_url",
-    "TURSO_AUTH_TOKEN": "@turso_auth_token",
-    "JWT_SECRET": "@jwt_secret"
+    "VITE_CLERK_PUBLISHABLE_KEY": "@vite_clerk_publishable_key"
   },
   "rewrites": [
-    { "source": "/api/auth/:path*", "destination": "/api/auth" },
-    { "source": "/api/data/:path*", "destination": "/api/data" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
