@@ -3,9 +3,9 @@
 ## Complete Flow
 
 1. **User clicks "Upgrade to Premium"** on `/pricing`
-2. **Opens Stripe Payment Link** → `https://buy.stripe.com/test_9B66oHf4r6eoblj0uVfUQ00`
+2. **Opens Stripe Payment Link** → `https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01`
 3. **User completes payment**
-4. **Stripe redirects to** → `https://yourdomain.com/thank-you?token={CHECKOUT_SESSION_ID}`
+4. **Stripe redirects to** → `https://mizanproject.vercel.app/thank-you?token={CHECKOUT_SESSION_ID}`
 5. **ThankYou page** calls API to generate activation token
 6. **User clicks "Accept Premium"** 
 7. **Redirects to** → `/getpremium-{ACTIVATION_TOKEN}`
@@ -15,11 +15,11 @@
 
 ### In Stripe Dashboard:
 
-1. Go to your Payment Link: `https://buy.stripe.com/test_9B66oHf4r6eoblj0uVfUQ00`
+1. Go to your Payment Link: `https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01`
 2. Click **"Edit"**
 3. Under **"After payment"** section:
    - Select **"Redirect to a page"**
-   - Enter: `https://mizan-three.vercel.app/thank-you?token={CHECKOUT_SESSION_ID}`
+   - Enter: `https://mizanproject.vercel.app/thank-you?token={CHECKOUT_SESSION_ID}`
    - (Replace with your actual Vercel domain)
 
 ### For Production:
