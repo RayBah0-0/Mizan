@@ -26,8 +26,11 @@
 2. Click **"Edit"**
 3. Under **"After payment"** section:
    - Select **"Redirect to a page"**
-   - Enter: `https://mizan-rho.vercel.app/pricing` (back to pricing page)
-   - (Or leave as default Stripe success page)
+   - Enter: `https://mizan-rho.vercel.app/dashboard?payment=success`
+   - (Redirects to dashboard with payment success flag)
+
+### For Production:
+Replace the test payment link with your live one and update the redirect URL.
 
 ### For Production:
 Replace the test payment link with your live one and update the redirect URL.
@@ -39,11 +42,14 @@ Replace the test payment link with your live one and update the redirect URL.
 2. Go to `http://localhost:5173/pricing`
 3. Click "Upgrade to Premium"
 4. Use Stripe test card: `4242 4242 4242 4242`
-5. Return to Mizan and click "Check Payment Status"
-6. Should show verification progress and success message
+5. Should redirect to `/dashboard?payment=success`
+6. Dashboard should show "Payment received. Activate premium to continue." banner
+7. Click "Activate Premium" to enable premium features
 
 ### Current Files:
-- **Pricing.tsx** - Shows payment status checker with automated verification
+- **Pricing.tsx** - Opens Stripe payment link
+- **Dashboard.tsx** - Handles payment success redirect and premium activation
+- **premium.ts** - localStorage-based premium state management
 
 ## Troubleshooting
 

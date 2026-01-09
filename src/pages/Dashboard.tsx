@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Target, Flame, Trophy, TrendingUp, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Calendar, Target, Flame, Trophy, TrendingUp, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
 import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
+import { handleStripeRedirect, isPremiumPending, activatePremium } from '@/lib/premium';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -30,6 +31,19 @@ const AnimatedCounter = ({ value }: { value: number }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { cyclesCompleted, currentProgress } = useCycle();
+  const [showPremiumActivated, setShowPremiumActivated] = useState(false);
+
+  // Handle Stripe redirect on component mount
+  useEffect(() => {
+    handleStripeRedirect();
+  }, []);
+
+  const handleActivatePremium = () => {
+    activatePremium();
+    setShowPremiumActivated(true);
+    // Hide confirmation after 3 seconds
+    setTimeout(() => setShowPremiumActivated(false), 3000);
+  };
 
   const metrics = useMemo(() => {
     const checkins = readCheckins();
@@ -98,6 +112,41 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-[#c4c4c6] px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-2xl mx-auto">
+
+        {/* Premium Pending Banner */}
+        {isPremiumPending() && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-[#1a1a1d] border border-[#2a2a2d] rounded-lg"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Crown className="w-5 h-5 text-[#3dd98f]" />
+                <span className="text-sm text-[#c4c4c6]">Payment received. Activate premium to continue.</span>
+              </div>
+              <button
+                onClick={handleActivatePremium}
+                className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] text-sm font-medium rounded transition-colors"
+              >
+                Activate Premium
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Premium Activated Confirmation */}
+        {showPremiumActivated && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mb-6 p-3 bg-[#2d4a3a]/20 border border-[#3dd98f]/30 rounded-lg text-center"
+          >
+            <span className="text-sm text-[#3dd98f]">Premium activated.</span>
+          </motion.div>
+        )}
+
         <motion.div 
           className="mb-12"
           initial={{ opacity: 0 }}
