@@ -251,6 +251,7 @@ export default function Settings() {
     return (
       <div className="min-h-screen bg-black text-[#c4c4c6] flex items-center justify-center px-6 py-12">
         <div className="max-w-2xl mx-auto text-center">
+          <h1>Settings - Not Authenticated</h1>
           <p>Settings require authentication. Please log in.</p>
         </div>
       </div>
@@ -266,7 +267,7 @@ export default function Settings() {
           transition={{ duration: 0.6 }}
         >
           <h1 className="text-4xl font-light tracking-wide mb-2">Settings</h1>
-          <p className="text-[#4a4a4d] text-sm ml-5">Adjust accountability rules and manage data.</p>
+          <p className="text-[#4a4a4d] text-sm ml-5">Adjust accountability rules and manage data. [New Version]</p>
         </motion.div>
 
         <div className="space-y-8">
