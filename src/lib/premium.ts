@@ -48,7 +48,10 @@ export function isPremiumEnabled(userId?: string): boolean {
 }
 
 export function isPremiumPending(userId?: string): boolean {
-  return localStorage.getItem(getUserKey("premium_pending", userId)) === "true";
+  const key = getUserKey("premium_pending", userId);
+  const result = localStorage.getItem(key) === "true";
+  console.log('🔍 isPremiumPending check:', { userId, key, result });
+  return result;
 }
 
 export function isPremiumExpired(userId?: string): boolean {
@@ -109,6 +112,7 @@ export function clearPremiumStates(userId?: string): void {
 export function migrateOldPremiumData(userId: string): void {
   // Clear any old premium data that might be using stored username
   const oldUser = readUser() || 'guest';
+  console.log('🔄 Migration check:', { userId, oldUser, shouldClear: oldUser !== userId });
   if (oldUser !== userId) {
     const oldKeys = [
       `premium_enabled_${oldUser}`,
@@ -116,6 +120,7 @@ export function migrateOldPremiumData(userId: string): void {
       `premium_expires_at_${oldUser}`,
       `premium_activation_code_${oldUser}`
     ];
+    console.log('🧹 Clearing old keys:', oldKeys);
     oldKeys.forEach(key => localStorage.removeItem(key));
   }
 }
@@ -150,6 +155,7 @@ export function checkStripeRedirect(): boolean {
 // Handle Stripe redirect - call this on dashboard mount
 export function handleStripeRedirect(userId?: string): void {
   if (checkStripeRedirect()) {
+    console.log('🔄 Stripe redirect detected, setting premium pending for user:', userId);
     setPremiumPending(userId);
     // Clean up URL
     const url = new URL(window.location.href);
