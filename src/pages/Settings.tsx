@@ -251,18 +251,19 @@ export default function Settings() {
 
   console.log('[Settings] About to render, user:', user?.email);
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-black text-[#c4c4c6] flex items-center justify-center px-6 py-12">
-        <div className="max-w-2xl mx-auto text-center">
-          <h1>Settings - Not Authenticated</h1>
-          <p>Settings require authentication. Please log in.</p>
+  try {
+    if (!user) {
+      return (
+        <div className="min-h-screen bg-black text-[#c4c4c6] flex items-center justify-center px-6 py-12">
+          <div className="max-w-2xl mx-auto text-center">
+            <h1>Settings - Not Authenticated</h1>
+            <p>Settings require authentication. Please log in.</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  return (
+    return (
     <div className="min-h-screen bg-black text-[#c4c4c6] px-6 py-12">
       <div className="max-w-2xl mx-auto space-y-12">
         <motion.div
@@ -665,5 +666,22 @@ export default function Settings() {
         </div>
       </div>
     </div>
-  );
+    );
+  } catch (err) {
+    console.error('[Settings] Render error:', err);
+    return (
+      <div className="min-h-screen bg-black text-[#c4c4c6] flex items-center justify-center px-6 py-12">
+        <div className="max-w-2xl mx-auto text-center">
+          <h1 className="text-2xl font-bold mb-4">Error Loading Settings</h1>
+          <p className="mb-4">{String(err)}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-[#2d4a3a] text-white rounded hover:bg-[#3d5a4a]"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
 }
