@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useCallback, useState, ReactNode } from 'react';
 import { getMizanSession, saveSettings, getOrCreateClerkToken } from '@/utils/api';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
@@ -168,41 +168,45 @@ export function MizanSessionProvider({ children }: { children: ReactNode }) {
     };
   }, [clerkUser]);
 
+  const refetch = useCallback(async () => {
+    try {
+      setState((prev) => ({ ...prev, isLoading: true }));
+      const payload: RawSessionResponse = await getMizanSession();
+      const { isPremium, premiumUntil } = derivePremium(payload.subscription);
+      const next: MizanSessionState = {
+        isPremium,
+        premiumUntil,
+        featureFlags: { ...defaultFlags, ...(payload.featureFlags || {}) },
+        schemaVersion: payload.schemaVersion || 1,
+        commitmentEndsAt: payload.commitmentEndsAt || null,
+        pledgeAcceptedAt: payload.pledgeAcceptedAt || null,
+        paywallHint: payload.paywallReason || null,
+        isLoading: false,
+        isStale: false,
+        refetch: async () => {},
+        saveStrictness: async () => {}
+      };
+      setState({ ...next });
+      writeCache({ ...next, isLoading: false, isStale: false });
+    } catch (err) {
+      console.warn('Session refetch failed', err);
+      setState((prev) => ({ ...prev, isLoading: false, isStale: true }));
+    }
+  }, []);
+
+  const saveStrictness = useCallback(async (level: number) => {
+    const clamped = Math.max(1, Math.min(5, level));
+    await saveSettings({ strictnessLevel: clamped });
+    await refetch();
+  }, [refetch]);
+
   const value = useMemo<SessionContextValue>(() => {
     return {
       ...state,
-      refetch: async () => {
-        try {
-          setState((prev) => ({ ...prev, isLoading: true }));
-          const payload: RawSessionResponse = await getMizanSession();
-          const { isPremium, premiumUntil } = derivePremium(payload.subscription);
-          const next: MizanSessionState = {
-            isPremium,
-            premiumUntil,
-            featureFlags: { ...defaultFlags, ...(payload.featureFlags || {}) },
-            schemaVersion: payload.schemaVersion || 1,
-            commitmentEndsAt: payload.commitmentEndsAt || null,
-            pledgeAcceptedAt: payload.pledgeAcceptedAt || null,
-            paywallHint: payload.paywallReason || null,
-            isLoading: false,
-            isStale: false,
-            refetch: async () => {},
-            saveStrictness: async () => {}
-          };
-          setState({ ...next });
-          writeCache({ ...next, isLoading: false, isStale: false });
-        } catch (err) {
-          console.warn('Session refetch failed', err);
-          setState((prev) => ({ ...prev, isLoading: false, isStale: true }));
-        }
-      },
-      saveStrictness: async (level: number) => {
-        const clamped = Math.max(1, Math.min(5, level));
-        await saveSettings({ strictnessLevel: clamped });
-        await state.refetch();
-      }
+      refetch,
+      saveStrictness
     };
-  }, [state]);
+  }, [state, refetch, saveStrictness]);
 
   return (
     <MizanSessionContext.Provider value={value}>
