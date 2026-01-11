@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils/urls';
 import { clearAll } from '@/utils/storage';
 import { readSettings, writeSettings } from '@/utils/storage';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
-import { setAccessCode as apiSetAccessCode, getUserInfo } from '@/utils/api';
+// Backend API no longer used - premium is localStorage-based
 import { applyTheme } from '@/utils/theme';
 import { 
   requestNotificationPermission, 
@@ -86,14 +86,6 @@ export default function Settings() {
       earlyAccess: s.featureFlags?.earlyAccess ?? false,
       supportChannel: s.featureFlags?.supportChannel || 'discord'
     });
-    // Fetch current user info including access code
-    if (user) {
-      getUserInfo()
-        .then(info => {
-          setCurrentAccessCode(info.accessCode || null);
-        })
-        .catch(console.error);
-    }
   }, [user]);
 
   // Migrate old premium data when user changes
