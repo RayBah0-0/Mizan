@@ -26,11 +26,11 @@ export function showNotification(title: string, options?: NotificationOptions) {
   }
 }
 
-export function checkNotificationPermission(): NotificationPermission {
+export function checkNotificationPermission(): 'default' | 'granted' | 'denied' {
   if (!('Notification' in window)) {
     return 'denied';
   }
-  return Notification.permission;
+  return Notification.permission as 'default' | 'granted' | 'denied';
 }
 
 // Store notification preference
