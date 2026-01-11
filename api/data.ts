@@ -10,7 +10,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(dataRouter);
+app.use('/api/data', dataRouter);
 
 // Initialize database once
 let dbInitialized = false;
