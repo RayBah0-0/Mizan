@@ -10,6 +10,14 @@ import { applyTheme } from './utils/theme';
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+if (!clerkPubKey) {
+  console.error('❌ VITE_CLERK_PUBLISHABLE_KEY is not set!');
+  document.body.innerHTML = '<div style="color: red; padding: 20px; font-family: monospace;">Error: Clerk publishable key not found. Check environment variables.</div>';
+  throw new Error('Clerk publishable key not configured');
+}
+
+console.log('✅ Clerk key found:', clerkPubKey ? 'Yes' : 'No');
+
 // Apply saved theme before rendering to avoid flash
 try {
   const savedTheme = readSettings().theme || 'dark';

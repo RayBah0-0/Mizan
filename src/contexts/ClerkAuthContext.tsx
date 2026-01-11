@@ -19,6 +19,8 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const { signOut: clerkSignOut } = useClerk();
 
+  console.log('🔍 Clerk Auth Status:', { clerkUser: !!clerkUser, isLoaded, userId: clerkUser?.id });
+
   const user: User | null = clerkUser
     ? {
         id: clerkUser.id,
