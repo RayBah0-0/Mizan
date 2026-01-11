@@ -5,7 +5,10 @@ import dataRouter from '../server/src/routes/data';
 import { initDatabase } from '../server/src/database';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['https://mizan-vite.vercel.app', 'http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(dataRouter);
 
