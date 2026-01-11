@@ -187,25 +187,25 @@ export default function Dashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mb-6 p-6 bg-[#2d4a3a]/20 border border-[#3dd98f]/30 rounded-lg"
+            className="mb-6 p-4 bg-[#1a1a1d]/50 border border-[#2d4a3a]/40 rounded-lg"
           >
             <div className="text-center">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                className="w-12 h-12 bg-[#3dd98f] rounded-full flex items-center justify-center mx-auto mb-4"
+                className="w-8 h-8 bg-[#3dd98f] rounded-full flex items-center justify-center mx-auto mb-3"
               >
-                <Crown className="w-6 h-6 text-[#0a0a0a]" />
+                <Crown className="w-4 h-4 text-[#0a0a0a]" />
               </motion.div>
-              <h3 className="text-lg font-medium text-[#3dd98f] mb-2">Premium Activated Successfully!</h3>
-              <p className="text-sm text-[#8a8a8d] mb-4">Your premium features are now unlocked for 1 year.</p>
+              <h3 className="text-sm font-medium text-[#3dd98f] mb-2">Premium Activated Successfully!</h3>
+              <p className="text-xs text-[#6a6a6d] mb-3">Your premium features are now unlocked for 1 year.</p>
 
               {activationCode && (
-                <div className="bg-[#0a0a0b] border border-[#1a1a1d] p-4 rounded-lg">
+                <div className="bg-[#0a0a0b] border border-[#1a1a1d] p-3 rounded-lg">
                   <p className="text-xs text-[#6a6a6d] mb-2">Save this activation code for backup:</p>
                   <div className="flex items-center gap-2">
-                    <code className="flex-1 px-3 py-2 bg-[#1a1a1d] text-[#3dd98f] font-mono text-sm rounded border border-[#2a2a2d]">
+                    <code className="flex-1 px-2 py-1 bg-[#1a1a1d] text-[#3dd98f] font-mono text-xs rounded border border-[#2a2a2d]">
                       {activationCode}
                     </code>
                     <button
@@ -213,7 +213,7 @@ export default function Dashboard() {
                         navigator.clipboard.writeText(activationCode);
                         // Could show a brief "Copied!" message
                       }}
-                      className="px-3 py-2 bg-[#1a1a1d] hover:bg-[#2a2a2d] text-[#c4c4c6] text-sm rounded border border-[#2a2a2d] transition-colors"
+                      className="px-2 py-1 bg-[#1a1a1d] hover:bg-[#2a2a2d] text-[#c4c4c6] text-xs rounded border border-[#2a2a2d] transition-colors"
                     >
                       Copy
                     </button>

@@ -1,14 +1,21 @@
 /**
  * Premium subscription management using localStorage
- * Frontend-only MVP solution
+ * Frontend-only MVP solution with user-specific storage
  */
 
+import { readUser } from '@/utils/storage';
+
+function getUserKey(baseKey: string): string {
+  const user = readUser() || 'guest';
+  return `${baseKey}_${user}`;
+}
+
 export function isPremiumEnabled(): boolean {
-  const enabled = localStorage.getItem("premium_enabled") === "true";
+  const enabled = localStorage.getItem(getUserKey("premium_enabled")) === "true";
   if (!enabled) return false;
 
   // Check if expired
-  const expiryDate = localStorage.getItem("premium_expires_at");
+  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at"));
   if (expiryDate) {
     const expiry = new Date(expiryDate);
     const now = new Date();
@@ -23,11 +30,11 @@ export function isPremiumEnabled(): boolean {
 }
 
 export function isPremiumPending(): boolean {
-  return localStorage.getItem("premium_pending") === "true";
+  return localStorage.getItem(getUserKey("premium_pending")) === "true";
 }
 
 export function isPremiumExpired(): boolean {
-  const expiryDate = localStorage.getItem("premium_expires_at");
+  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at"));
   if (!expiryDate) return false;
 
   const expiry = new Date(expiryDate);
@@ -39,45 +46,45 @@ export function activatePremium(): string {
   const oneYearFromNow = new Date();
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-  localStorage.setItem("premium_enabled", "true");
-  localStorage.setItem("premium_expires_at", oneYearFromNow.toISOString());
-  localStorage.setItem("premium_activation_code", generateActivationCode());
-  localStorage.removeItem("premium_pending");
+  localStorage.setItem(getUserKey("premium_enabled"), "true");
+  localStorage.setItem(getUserKey("premium_expires_at"), oneYearFromNow.toISOString());
+  localStorage.setItem(getUserKey("premium_activation_code"), generateActivationCode());
+  localStorage.removeItem(getUserKey("premium_pending"));
 
   // Return the code instead of showing alert
-  return localStorage.getItem("premium_activation_code") || "";
+  return localStorage.getItem(getUserKey("premium_activation_code")) || "";
 }
 
 export function getActivationCode(): string | null {
-  return localStorage.getItem("premium_activation_code");
+  return localStorage.getItem(getUserKey("premium_activation_code"));
 }
 
 export function activateWithCode(code: string): boolean {
-  const storedCode = localStorage.getItem("premium_activation_code");
+  const storedCode = localStorage.getItem(getUserKey("premium_activation_code"));
   if (storedCode === code) {
     const oneYearFromNow = new Date();
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-    localStorage.setItem("premium_enabled", "true");
-    localStorage.setItem("premium_expires_at", oneYearFromNow.toISOString());
+    localStorage.setItem(getUserKey("premium_enabled"), "true");
+    localStorage.setItem(getUserKey("premium_expires_at"), oneYearFromNow.toISOString());
     return true;
   }
   return false;
 }
 
 export function getPremiumExpiryDate(): Date | null {
-  const expiryDate = localStorage.getItem("premium_expires_at");
+  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at"));
   return expiryDate ? new Date(expiryDate) : null;
 }
 
 export function setPremiumPending(): void {
-  localStorage.setItem("premium_pending", "true");
+  localStorage.setItem(getUserKey("premium_pending"), "true");
 }
 
 export function clearPremiumStates(): void {
-  localStorage.removeItem("premium_enabled");
-  localStorage.removeItem("premium_pending");
-  localStorage.removeItem("premium_expires_at");
+  localStorage.removeItem(getUserKey("premium_enabled"));
+  localStorage.removeItem(getUserKey("premium_pending"));
+  localStorage.removeItem(getUserKey("premium_expires_at"));
   // Keep activation code for reactivation
 }
 

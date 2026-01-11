@@ -152,14 +152,14 @@ export default function Pricing() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-8 p-4 bg-[#2d4a3a]/20 border border-[#3dd98f]/30 rounded-lg text-center"
+            className="mb-6 p-3 bg-[#1a1a1d]/50 border border-[#2d4a3a]/40 rounded-lg text-center"
           >
             <div className="flex items-center justify-center gap-2 text-[#3dd98f]">
-              <Crown className="w-5 h-5" />
-              <span className="font-medium">Premium Plan Active</span>
+              <Crown className="w-4 h-4" />
+              <span className="text-sm font-medium">Premium Plan Active</span>
             </div>
             {getPremiumExpiryDate() && (
-              <p className="text-sm text-[#8a8a8d] mt-1">
+              <p className="text-xs text-[#6a6a6d] mt-1">
                 Expires: {getPremiumExpiryDate()?.toLocaleDateString()}
               </p>
             )}
@@ -261,52 +261,68 @@ export default function Pricing() {
               ))}
             </ul>
             <button
-              onClick={handleUpgrade}
-              className="w-full py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+              onClick={premiumStatus === 'active' ? undefined : handleUpgrade}
+              disabled={premiumStatus === 'active'}
+              className={`w-full py-3 font-semibold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
+                premiumStatus === 'active'
+                  ? 'bg-[#1a1a1d] border border-[#2d4a3a]/40 text-[#3dd98f] cursor-not-allowed'
+                  : 'bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a]'
+              }`}
             >
-              <Zap className="w-4 h-4" />
-              Upgrade to Premium
+              {premiumStatus === 'active' ? (
+                <>
+                  <Crown className="w-4 h-4" />
+                  Premium Unlocked
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  Upgrade to Premium
+                </>
+              )}
             </button>
 
             {/* More Visible "Already Paid?" Button */}
-            <div className="mt-4 pt-4 border-t border-[#1a1a1d]">
-              <button
-                onClick={() => setShowCodeInput(!showCodeInput)}
-                className="w-full py-3 bg-[#1a1a1d] hover:bg-[#2a2a2d] border-2 border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
-              >
-                <Key className="w-4 h-4" />
-                Already paid? Activate your premium here
-              </button>
-
-              {/* Code Activation Input */}
-              {showCodeInput && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="mt-4 space-y-3"
+            {premiumStatus !== 'active' && (
+              <div className="mt-4">
+                <button
+                  onClick={() => setShowCodeInput(!showCodeInput)}
+                  className="w-full py-3 bg-[#1a1a1d] hover:bg-[#2a2a2d] border-2 border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  <div>
-                    <input
-                      type="text"
-                      value={activationCode}
-                      onChange={(e) => setActivationCode(e.target.value)}
-                      placeholder="Enter your activation code"
-                      className="w-full px-4 py-3 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
-                    />
-                    {codeError && (
-                      <p className="text-red-400 text-sm mt-1">{codeError}</p>
-                    )}
-                  </div>
-                  <button
-                    onClick={handleActivateWithCode}
-                    className="w-full py-2 bg-[#3dd98f] hover:bg-[#4eeaa0] text-[#0a0a0a] font-medium text-sm transition-colors"
+                  <Key className="w-4 h-4" />
+                  Already paid? Activate your premium here →
+                </button>
+
+                {/* Code Activation Input */}
+                {showCodeInput && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-4 space-y-3"
                   >
-                    Activate Premium
-                  </button>
-                </motion.div>
-              )}
-            </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value)}
+                        placeholder="Enter your activation code"
+                        className="w-full px-4 py-3 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
+                      />
+                      {codeError && (
+                        <p className="text-red-400 text-sm mt-1">{codeError}</p>
+                      )}
+                    </div>
+                    <button
+                      onClick={handleActivateWithCode}
+                      className="w-full py-2 bg-[#3dd98f] hover:bg-[#4eeaa0] text-[#0a0a0a] font-medium text-sm transition-colors"
+                    >
+                      Activate Premium
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            )}
           </motion.div>
         </div>
 
@@ -347,10 +363,6 @@ export default function Pricing() {
           className="text-center text-[#4a4a4d] text-sm mt-12"
         >
           Annual subscription. Cancel anytime. No hidden fees.
-          <br />
-          <a href="/activate" className="text-[#3dd98f] hover:underline text-xs mt-2 inline-block">
-            Already paid? Activate your premium here →
-          </a>
         </motion.p>
       </div>
     </div>
