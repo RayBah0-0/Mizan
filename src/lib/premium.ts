@@ -153,7 +153,11 @@ export function debugPremiumKeys(): void {
 // Check for Stripe redirect with payment=success
 export function checkStripeRedirect(): boolean {
   const urlParams = new URLSearchParams(window.location.search);
-  return urlParams.get('payment') === 'success';
+  return (
+    urlParams.get('payment') === 'success' ||
+    urlParams.get('redirect_status') === 'succeeded' ||
+    urlParams.has('session_id')
+  );
 }
 
 // Handle Stripe redirect - call this on dashboard mount

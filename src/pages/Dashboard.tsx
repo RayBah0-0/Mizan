@@ -38,26 +38,20 @@ export default function Dashboard() {
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
-  // Handle Stripe redirect on component mount - check for payment success
+  // If we came back from Stripe, mark it so we can handle once user is loaded
   useEffect(() => {
     if (checkStripeRedirect()) {
-      // If user is already loaded, handle immediately
-      if (user?.id) {
-        handleStripeRedirect(user.id);
-      } else {
-        // User not loaded yet, set up a timeout to check again
-        const checkUserAndHandle = () => {
-          if (user?.id) {
-            handleStripeRedirect(user.id);
-          } else {
-            // Retry after a short delay
-            setTimeout(checkUserAndHandle, 100);
-          }
-        };
-        checkUserAndHandle();
-      }
+      sessionStorage.setItem('stripe_redirect_pending', 'true');
     }
-  }, []); // Run only on mount
+  }, []);
+
+  // Handle Stripe redirect once user is available
+  useEffect(() => {
+    if (user?.id && sessionStorage.getItem('stripe_redirect_pending') === 'true') {
+      handleStripeRedirect(user.id);
+      sessionStorage.removeItem('stripe_redirect_pending');
+    }
+  }, [user?.id]);
 
   // Migrate old premium data when user changes
   useEffect(() => {
