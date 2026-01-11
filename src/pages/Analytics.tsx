@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, Target, Lock, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { readCheckins } from '@/utils/storage';
-import { useMizanSession } from '@/contexts/MizanSessionContext';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
+import { isPremiumEnabled } from '@/lib/premium';
 import { createPageUrl } from '@/utils/urls';
 
 export default function Analytics() {
-  const { isPremium } = useMizanSession();
+  const { user } = useClerkAuth();
+  const isPremium = isPremiumEnabled(user?.id);
   const navigate = useNavigate();
   
   // Calculate basic stats for preview
