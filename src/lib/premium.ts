@@ -100,7 +100,9 @@ export function activatePremium(userId?: string): string {
   const oneYearFromNow = new Date();
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-  const code = generateActivationCode();
+  // Check if user already has an activation code - preserve it
+  const existing = readPremiumData(userId);
+  const code = existing?.activationCode || generateActivationCode();
 
   const premiumData: PremiumStatus = {
     active: true,
@@ -141,9 +143,18 @@ export function activateWithCode(inputCode: string, userId?: string): boolean {
 /**
  * Clear all premium data for user
  */
+/**
+ * Clear premium status but preserve activation code for reactivation
+ */
 export function clearPremiumData(userId?: string): void {
-  const key = getStorageKey(userId);
-  localStorage.removeItem(key);
+  const status = getPremiumStatus(userId);
+  
+  // Preserve the activation code but clear active status
+  writePremiumData({
+    active: false,
+    expiresAt: null,
+    activationCode: status.activationCode, // Keep code for reactivation
+  }, userId);
 }
 
 // ============================================================================
