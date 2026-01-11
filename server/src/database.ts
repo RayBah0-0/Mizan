@@ -46,6 +46,7 @@ export async function initDatabase() {
 
   // Backfill new user columns for premium v2 + schema versioning
   await tryExec('ALTER TABLE users ADD COLUMN clerk_id TEXT');
+  await tryExec('ALTER TABLE users ADD COLUMN email TEXT');
   await tryExec('ALTER TABLE users ADD COLUMN premium_until DATETIME');
   await tryExec('ALTER TABLE users ADD COLUMN pledge_accepted_at DATETIME');
   await tryExec('ALTER TABLE users ADD COLUMN premium_started_at DATETIME');

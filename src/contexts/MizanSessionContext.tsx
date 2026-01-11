@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
-import { getMizanSession } from '@/utils/api';
-import { saveSettings } from '@/utils/api';
+import { getMizanSession, saveSettings, getOrCreateClerkToken } from '@/utils/api';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 const SESSION_CACHE_KEY = 'mizan_session_cache_v1';
 
@@ -75,6 +75,7 @@ function derivePremium(subscription?: RawSessionResponse['subscription']) {
 const MizanSessionContext = createContext<SessionContextValue | undefined>(undefined);
 
 export function MizanSessionProvider({ children }: { children: ReactNode }) {
+  const { user: clerkUser } = useClerkAuth();
   const [state, setState] = useState<MizanSessionState>(() => {
     const cached = readCache();
     return {
@@ -96,15 +97,27 @@ export function MizanSessionProvider({ children }: { children: ReactNode }) {
     let active = true;
 
     async function load() {
-      const token = localStorage.getItem('mizan_token');
-      if (!token) {
-        if (active) {
-          setState((prev) => ({ ...prev, isPremium: false, premiumUntil: null, isLoading: false, isStale: false }));
-        }
-        return;
-      }
-
       try {
+        // If Clerk user is available but no Mizan token, create one
+        if (clerkUser && clerkUser.id && clerkUser.email) {
+          let token = localStorage.getItem('mizan_token');
+          if (!token) {
+            console.log('Creating Mizan token for Clerk user:', clerkUser.email);
+            const result = await getOrCreateClerkToken(clerkUser.id, clerkUser.email, clerkUser.username);
+            if (result.token) {
+              localStorage.setItem('mizan_token', result.token);
+            }
+          }
+        }
+
+        const token = localStorage.getItem('mizan_token');
+        if (!token) {
+          if (active) {
+            setState((prev) => ({ ...prev, isPremium: false, premiumUntil: null, isLoading: false, isStale: false }));
+          }
+          return;
+        }
+
         const payload: RawSessionResponse = await getMizanSession();
         if (!active) return;
 
@@ -119,7 +132,8 @@ export function MizanSessionProvider({ children }: { children: ReactNode }) {
           paywallHint: payload.paywallReason || null,
           isLoading: false,
           isStale: false,
-          refetch: async () => {}
+          refetch: async () => {},
+          saveStrictness: async () => {}
         };
 
         setState({ ...next });
@@ -148,7 +162,7 @@ export function MizanSessionProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [clerkUser]);
 
   const value = useMemo<SessionContextValue>(() => {
     return {
@@ -168,7 +182,8 @@ export function MizanSessionProvider({ children }: { children: ReactNode }) {
             paywallHint: payload.paywallReason || null,
             isLoading: false,
             isStale: false,
-            refetch: async () => {}
+            refetch: async () => {},
+            saveStrictness: async () => {}
           };
           setState({ ...next });
           writeCache({ ...next, isLoading: false, isStale: false });

@@ -202,6 +202,22 @@ export async function createPremiumTokenFromStripe(stripeSessionId: string) {
   return response.json();
 }
 
+export async function getOrCreateClerkToken(clerkId: string, email: string, username?: string) {
+  const response = await fetch(`${API_URL}/auth/clerk-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ clerkId, email, username })
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get Clerk token');
+  }
+
+  return response.json();
+}
+
 export async function redeemPremiumToken(token: string) {
   const response = await fetch(`${API_URL}/auth/premium/redeem`, {
     method: 'POST',

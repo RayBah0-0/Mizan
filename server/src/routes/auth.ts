@@ -197,6 +197,66 @@ router.post('/login-code', async (req: Request, res: Response) => {
   }
 });
 
+// Handle Clerk user authentication/creation
+router.post('/clerk-token', async (req: Request, res: Response) => {
+  try {
+    const { clerkId, email, username } = req.body;
+
+    console.log('Clerk token request:', { clerkId, email, username });
+
+    if (!clerkId || !email) {
+      return res.status(400).json({ error: 'Clerk ID and email required' });
+    }
+
+    const db = getDB();
+
+    // Try to find existing user by clerk_id
+    let userResult = await db.execute({
+      sql: 'SELECT id, premium_until FROM users WHERE clerk_id = ?',
+      args: [clerkId]
+    });
+
+    let userId: number;
+
+    if (userResult.rows.length > 0) {
+      // User already exists
+      userId = Number(userResult.rows[0].id);
+      console.log('Found existing Clerk user:', userId);
+    } else {
+      // Create new user
+      const generatedUsername = username || email.split('@')[0] || `user_${Date.now()}`;
+      
+      const insertResult = await run(
+        'INSERT INTO users (username, clerk_id, email) VALUES (?, ?, ?)',
+        [generatedUsername, clerkId, email.toLowerCase()]
+      );
+
+      userId = Number(insertResult.lastInsertRowid);
+      console.log('Created new Clerk user:', userId);
+
+      // Initialize default settings
+      await run(
+        'INSERT INTO settings (user_id, settings) VALUES (?, ?)',
+        [userId, JSON.stringify({ requireThreeOfFive: true })]
+      );
+    }
+
+    // Update email if it changed
+    await run('UPDATE users SET email = ? WHERE id = ?', [email.toLowerCase(), userId]);
+
+    const token = generateToken(userId);
+
+    res.json({
+      token,
+      userId,
+      user: { id: userId, clerkId, email }
+    });
+  } catch (error) {
+    console.error('Clerk token error:', error);
+    res.status(500).json({ error: 'Failed to process Clerk authentication' });
+  }
+});
+
 // Set or update access code (authenticated)
 router.post('/set-access-code', authMiddleware, async (req: Request, res: Response) => {
   try {
@@ -437,7 +497,7 @@ router.post('/webhook/stripe', async (req: Request, res: Response) => {
   try {
     const event = req.body;
 
-    console.log('Stripe webhook received:', event.type);
+    console.log('Stripe webhook received:', event.type, event.data?.object?.customer_details?.email);
 
     // Handle successful payment
     if (event.type === 'checkout.session.completed') {
@@ -445,22 +505,34 @@ router.post('/webhook/stripe', async (req: Request, res: Response) => {
       const customerEmail = session.customer_details?.email;
 
       if (!customerEmail) {
-        console.log('No customer email in webhook');
+        console.log('No customer email in webhook, unable to match user');
         return res.status(200).json({ received: true });
       }
 
-      // Find user by email (we'll need to add email to user table or use a different identifier)
-      // For now, we'll use a simple approach - look for users who recently clicked upgrade
-      // In production, you'd want to store the session ID and user ID mapping
+      const db = getDB();
+      
+      // Find user by email
+      const userResult = await db.execute({
+        sql: 'SELECT id FROM users WHERE email = ?',
+        args: [customerEmail.toLowerCase()]
+      });
 
-      console.log('Payment completed for:', customerEmail);
+      if (userResult.rows.length === 0) {
+        console.log('User not found with email:', customerEmail);
+        return res.status(200).json({ received: true });
+      }
 
-      // For now, we'll create a pending activation that users can claim
-      // In a real implementation, you'd match the user who initiated the payment
+      const userId = userResult.rows[0].id;
+      const premiumUntil = new Date();
+      premiumUntil.setFullYear(premiumUntil.getFullYear() + 1);
 
-      // You could also send an email with an activation link
-      // or automatically activate if you can identify the user
+      // Update user with premium status
+      await run(
+        'UPDATE users SET subscription_tier = ?, premium_until = ?, premium_started_at = CURRENT_TIMESTAMP WHERE id = ?',
+        ['premium', premiumUntil.toISOString(), userId]
+      );
 
+      console.log('Premium activated for user:', userId, 'until:', premiumUntil.toISOString());
       res.status(200).json({ received: true });
     } else {
       res.status(200).json({ received: true });
