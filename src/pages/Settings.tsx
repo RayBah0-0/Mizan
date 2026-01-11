@@ -15,7 +15,6 @@ import {
   setNotificationsEnabled,
   showNotification
 } from '@/utils/notifications';
-import { isPremiumEnabled, getActivationCode, clearPremiumStates, migrateOldPremiumData } from '@/lib/premium';
 import { useMizanSession } from '@/contexts/MizanSessionContext';
 
 // Custom animated toggle switch
@@ -52,8 +51,6 @@ export default function Settings() {
   const [focusPhrase, setFocusPhrase] = useState('Consistency is earned.');
   const [customCategories, setCustomCategories] = useState('');
   const [featureFlags, setFeatureFlags] = useState({ prioritySupport: false, earlyAccess: false, supportChannel: 'discord' as 'discord' | 'email' | 'none' });
-  const [showPremiumKey, setShowPremiumKey] = useState(false);
-  const [premiumKeyCopyStatus, setPremiumKeyCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [strictnessLevel, setStrictnessLevel] = useState(1);
   const navigate = useNavigate();
   const { user, signOut } = useClerkAuth();
@@ -98,13 +95,6 @@ export default function Settings() {
         .catch(console.error);
     }
   }, [user]);
-
-  // Migrate old premium data when user changes
-  useEffect(() => {
-    if (user?.id) {
-      migrateOldPremiumData(user.id);
-    }
-  }, [user?.id]);
 
   const validateAccessCode = (code: string): string | null => {
     if (!code) return null;
@@ -355,69 +345,11 @@ export default function Settings() {
           )}
 
           {/* Premium Key Section */}
-          {isPremiumEnabled(user?.id) && (
+          {isPremium && (
             <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
-              <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Premium Key</h2>
+              <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Premium Status</h2>
               <div className="space-y-3">
-                <p className="text-[#4a4a4d] text-xs mb-3">Your activation code for backup reactivation</p>
-                <button
-                  onClick={() => setShowPremiumKey(!showPremiumKey)}
-                  className="flex items-center gap-2 text-[#6a6a6d] hover:text-[#c4c4c6] text-sm transition-colors"
-                >
-                  <span className="w-4 h-4 border border-current rounded flex items-center justify-center text-xs">
-                    {showPremiumKey ? '−' : '+'}
-                  </span>
-                  {showPremiumKey ? 'Hide Key' : 'Show Key'}
-                </button>
-                {showPremiumKey && getActivationCode(user?.id) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="bg-[#0e0e10] border border-[#1a1a1d] p-3 rounded"
-                  >
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 bg-[#1a1a1d] text-[#3dd98f] font-mono text-sm rounded border border-[#2a2a2d]">
-                        {getActivationCode(user?.id)}
-                      </code>
-                      <motion.button
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(getActivationCode(user?.id)!);
-                          setPremiumKeyCopyStatus('copied');
-                          setTimeout(() => setPremiumKeyCopyStatus('idle'), 2000);
-                        }}
-                        className="px-3 py-1 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] text-sm rounded transition-colors min-w-[60px]"
-                        animate={premiumKeyCopyStatus === 'copied' ? { scale: [1, 1.05, 1] } : {}}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <motion.span
-                          key={premiumKeyCopyStatus}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {premiumKeyCopyStatus === 'copied' ? 'Copied!' : 'Copy'}
-                        </motion.span>
-                      </motion.button>
-                    </div>
-                    <p className="text-[#4a4a4d] text-xs mt-2">Use this code to reactivate premium on another device or after data reset.</p>
-                    <div className="mt-3 pt-3 border-t border-[#1a1a1d]">
-                      <button
-                        onClick={() => {
-                          clearPremiumStates(user?.id);
-                          setSavedMsg('Premium data cleared for current user');
-                          setTimeout(() => setSavedMsg(''), 3000);
-                          // Refresh the page to update the UI
-                          window.location.reload();
-                        }}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
-                      >
-                        Clear Premium Data
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
+                <p className="text-[#4a4a4d] text-xs mb-3">✅ Your premium subscription is active</p>
               </div>
             </section>
           )}
