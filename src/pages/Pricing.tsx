@@ -261,25 +261,11 @@ export default function Pricing() {
               ))}
             </ul>
             <button
-              onClick={premiumStatus === 'active' ? undefined : handleUpgrade}
-              disabled={premiumStatus === 'active'}
-              className={`w-full py-3 font-semibold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2 ${
-                premiumStatus === 'active'
-                  ? 'bg-[#1a1a1d] border border-[#2d4a3a]/40 text-[#3dd98f] cursor-not-allowed'
-                  : 'bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a]'
-              }`}
+              onClick={handleUpgrade}
+              className="w-full py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
             >
-              {premiumStatus === 'active' ? (
-                <>
-                  <Crown className="w-4 h-4" />
-                  Premium Unlocked
-                </>
-              ) : (
-                <>
-                  <Zap className="w-4 h-4" />
-                  Upgrade to Premium
-                </>
-              )}
+              <Zap className="w-4 h-4" />
+              Upgrade to Premium
             </button>
 
             {/* More Visible "Already Paid?" Button */}
