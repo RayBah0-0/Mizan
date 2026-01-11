@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 
 interface User {
@@ -27,15 +27,15 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
       }
     : null;
 
-  const signOut = useCallback(async () => {
+  const signOut = async () => {
     await clerkSignOut();
-  }, [clerkSignOut]);
+  };
 
-  const value = useMemo(() => ({
+  const value = {
     user,
     signOut,
     isLoading: !isLoaded,
-  }), [user, signOut, isLoaded]);
+  };
 
   return (
     <ClerkAuthContext.Provider value={value}>

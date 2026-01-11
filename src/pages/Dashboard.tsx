@@ -1,15 +1,13 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Calendar, Target, Flame, Trophy, TrendingUp, CheckCircle2, AlertCircle, Crown, Lock } from 'lucide-react';
+import { Calendar, Target, Flame, Trophy, TrendingUp, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
 import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
 import { handleStripeRedirect, checkStripeRedirect, isPremiumPending, activatePremium, migrateOldPremiumData } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
-import { useMizanSession } from '@/contexts/MizanSessionContext';
-import { getSummary } from '@/utils/api';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -31,35 +29,30 @@ const AnimatedCounter = ({ value }: { value: number }) => {
   );
 };
 
-function LegacyDashboard() {
+export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useClerkAuth();
   const { cyclesCompleted, currentProgress } = useCycle();
-  const [pendingBannerVisible, setPendingBannerVisible] = useState(false);
   const [showPremiumActivated, setShowPremiumActivated] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [premiumRefreshKey, setPremiumRefreshKey] = useState(0);
 
   // If we came back from Stripe, mark it so we can handle once user is loaded
   useEffect(() => {
     if (checkStripeRedirect()) {
       sessionStorage.setItem('stripe_redirect_pending', 'true');
-      setPendingBannerVisible(true);
     }
   }, []);
-
-  // Sync banner with stored pending flag
-  useEffect(() => {
-    setPendingBannerVisible(isPremiumPending(user?.id));
-  }, [user?.id]);
 
   // Handle Stripe redirect once user is available
   useEffect(() => {
     if (user?.id && sessionStorage.getItem('stripe_redirect_pending') === 'true') {
       handleStripeRedirect(user.id);
-      setPendingBannerVisible(true);
       sessionStorage.removeItem('stripe_redirect_pending');
+      // Force premium UI to refresh
+      setPremiumRefreshKey(prev => prev + 1);
     }
   }, [user?.id]);
 
@@ -77,10 +70,11 @@ function LegacyDashboard() {
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const code = activatePremium(user?.id);
-    setPendingBannerVisible(false);
     setActivationCode(code);
     setShowPremiumActivated(true);
     setIsActivating(false);
+    // Force premium UI to refresh
+    setPremiumRefreshKey(prev => prev + 1);
 
     // No longer auto-hide - user must click copy or X to close
   };
@@ -143,7 +137,7 @@ function LegacyDashboard() {
       lastPoints,
       user
     };
-  }, [cyclesCompleted]);
+  }, [cyclesCompleted, premiumRefreshKey]);
 
   const handlePrimary = () => {
     navigate(createPageUrl('CheckIn'));
@@ -154,7 +148,7 @@ function LegacyDashboard() {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-2xl mx-auto">
 
         {/* Premium Pending Banner */}
-        {(pendingBannerVisible || isPremiumPending(user?.id)) && (
+        {isPremiumPending(user?.id) && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -303,9 +297,8 @@ function LegacyDashboard() {
             ) : (
               <Calendar className="w-8 h-8 text-[#6a6a6d]" />
             )}
-            <h1 className="text-3xl font-light flex items-center gap-2">
+            <h1 className="text-3xl font-light">
               {metrics.todayStatus}
-              {metrics.submittedDays > 0 && <Lock className="w-4 h-4 text-[#6a6a6d]" title="Ledger sealed" />}
             </h1>
           </motion.div>
         </motion.div>
@@ -544,178 +537,4 @@ function LegacyDashboard() {
       </motion.div>
     </div>
   );
-}
-
-type SummaryResult = {
-  range: string;
-  daysEvaluated: number;
-  totalScore: number;
-  averageScore: number;
-  perDay: Array<{ date: string; score: number }>;
-  paywallReason?: { code: string; feature: string } | null;
-};
-
-function DashboardV2() {
-  const { isPremium, paywallHint, pledgeAcceptedAt, refetch } = useMizanSession();
-  const [summary, setSummary] = useState<SummaryResult | null>(null);
-  const [loadingSummary, setLoadingSummary] = useState(true);
-  const [showLockedModal, setShowLockedModal] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [pledgeSaving, setPledgeSaving] = useState(false);
-
-  useEffect(() => {
-    let mounted = true;
-    setLoadingSummary(true);
-    getSummary('14d')
-      .then((data) => {
-        if (!mounted) return;
-        setSummary(data);
-        setError(null);
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setError('Summary unavailable');
-      })
-      .finally(() => {
-        if (mounted) setLoadingSummary(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  const lockedCopy = paywallHint?.feature ? `Full consequence locked (${paywallHint.feature})` : 'Full consequence locked';
-  const visibleAverage = isPremium ? summary?.averageScore : summary ? Math.max(0, Math.round(summary.averageScore * 0.4)) : null;
-
-  return (
-    <div className="min-h-screen bg-[#0a0a0b] text-[#c4c4c6] px-6 py-12">
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-8">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-[#4a4a4d] mb-2">Ledger</p>
-          <h1 className="text-3xl font-light">Summary</h1>
-        </div>
-
-        <div className="border border-[#1a1a1d] bg-[#0e0e10] p-6 relative overflow-hidden">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm text-[#6a6a6d]">Past 14 days</p>
-              <p className="text-4xl font-light text-white mt-1">{visibleAverage ?? '—'}</p>
-              <p className="text-xs text-[#6a6a6d] mt-1">Average score</p>
-            </div>
-            <div className="text-right">
-              <p className="text-sm text-[#6a6a6d]">Days logged</p>
-              <p className="text-xl text-white">{summary?.daysEvaluated ?? '—'}</p>
-            </div>
-          </div>
-
-          {!isPremium && (
-            <div className="absolute inset-0 bg-[#0a0a0b]/70 backdrop-blur-sm flex items-center justify-center">
-              <div className="text-center px-6">
-                <Lock className="w-10 h-10 text-[#3dd98f] mx-auto mb-3" />
-                <p className="text-base font-semibold mb-1">{lockedCopy}</p>
-                <p className="text-sm text-[#8a8a8d] mb-4">Ledger consequences stay sealed until you upgrade.</p>
-                <button
-                  onClick={() => setShowLockedModal(true)}
-                  className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-colors"
-                >
-                  View why
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border border-[#1a1a1d] bg-[#0a0a0b]">
-              <p className="text-xs uppercase tracking-[0.12em] text-[#4a4a4d] mb-2">Total</p>
-              <p className="text-2xl text-white">{summary?.totalScore ?? '—'}</p>
-              <p className="text-xs text-[#6a6a6d] mt-1">Accumulated score</p>
-            </div>
-            <div className="p-4 border border-[#1a1a1d] bg-[#0a0a0b]">
-              <p className="text-xs uppercase tracking-[0.12em] text-[#4a4a4d] mb-2">Last logged day</p>
-              <p className="text-2xl text-white">{summary?.perDay?.slice(-1)[0]?.date ?? '—'}</p>
-              <p className="text-xs text-[#6a6a6d] mt-1">Shows only the date, not the contents</p>
-            </div>
-          </div>
-
-          {error && <p className="text-xs text-red-400 mt-3">{error}</p>}
-          {loadingSummary && <p className="text-xs text-[#6a6a6d] mt-3">Loading summary…</p>}
-        </div>
-
-        {isPremium && !pledgeAcceptedAt && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-            <div className="bg-[#0a0a0b] border border-[#1a1a1d] p-6 max-w-sm w-full text-left">
-              <p className="text-lg font-semibold text-white mb-3">This is a commitment.</p>
-              <div className="space-y-3 text-sm text-[#c4c4c6]">
-                <label className="flex items-start gap-2">
-                  <input type="checkbox" disabled className="mt-1" defaultChecked />
-                  <span>I accept the record will stay.</span>
-                </label>
-                <label className="flex items-start gap-2">
-                  <input type="checkbox" disabled className="mt-1" defaultChecked />
-                  <span>I accept sealed days cannot be edited.</span>
-                </label>
-                <label className="flex items-start gap-2">
-                  <input type="checkbox" disabled className="mt-1" defaultChecked />
-                  <span>I accept consequences for missed duties.</span>
-                </label>
-              </div>
-              <button
-                onClick={async () => {
-                  setPledgeSaving(true);
-                  try {
-                    await (await import('@/utils/api')).acceptPledge();
-                    await refetch();
-                  } finally {
-                    setPledgeSaving(false);
-                  }
-                }}
-                className="w-full mt-4 px-4 py-2 bg-[#2d4a3a] text-[#0a0a0a] font-semibold text-sm tracking-wide disabled:bg-[#1a1a1d] disabled:text-[#4a4a4d]"
-                disabled={pledgeSaving}
-              >
-                {pledgeSaving ? 'Saving…' : 'I accept'}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {showLockedModal && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-[#0a0a0b] border border-[#1a1a1d] p-6 max-w-sm w-full text-left">
-              <p className="text-lg font-semibold text-white mb-2">Access required</p>
-              <p className="text-sm text-[#c4c4c6] mb-4">
-                {paywallHint?.code === 'premium_required'
-                  ? 'Your ledger is sealed until premium is active. No previews, no exceptions.'
-                  : 'Upgrade to unlock full consequence view and sealed ledger summaries.'}
-              </p>
-              <button
-                onClick={() => setShowLockedModal(false)}
-                className="w-full px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide"
-              >
-                Understood
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-export default function Dashboard() {
-  const { featureFlags, isLoading } = useMizanSession();
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0b] text-[#c4c4c6] px-6 py-12 flex items-center justify-center">
-        <p className="text-sm text-[#6a6a6d]">Loading ledger…</p>
-      </div>
-    );
-  }
-
-  if (!featureFlags?.premiumV2) {
-    return <LegacyDashboard />;
-  }
-
-  return <DashboardV2 />;
 }

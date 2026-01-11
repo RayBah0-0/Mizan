@@ -11,7 +11,6 @@ import Pricing from './pages/Pricing';
 import ActivatePremium from './pages/ActivatePremium';
 import ThankYou from './pages/ThankYou';
 import RedeemPremium from './pages/RedeemPremium';
-import Loss from './pages/Loss';
 import UserNotRegisteredError from './components/UserNotRegisteredError';
 import { useClerkAuth } from './contexts/ClerkAuthContext';
 import { syncFromServer, readCheckins } from './utils/storage';
@@ -60,7 +59,6 @@ export default function App() {
         <Route path="/status" element={<Status />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/analytics" element={<Analytics />} />
-        <Route path="/loss" element={<Loss />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/activate" element={<ActivatePremium />} />
         <Route path="/thank-you" element={<ThankYou />} />
