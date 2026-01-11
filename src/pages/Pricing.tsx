@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Zap, Crown, TrendingUp, BarChart3, Lock, Mail, FileText, Clock, CreditCard, X, Key } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
-import { isPremiumEnabled, isPremiumExpired, activateWithCode, getPremiumExpiryDate, migrateOldPremiumData } from '@/lib/premium';
+import { getPremiumStatus, activateWithCode, migrateOldPremiumData } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 const features = {
@@ -29,28 +29,12 @@ const features = {
 export default function Pricing() {
   const navigate = useNavigate();
   const { user } = useClerkAuth();
-  const [showPaymentStatus, setShowPaymentStatus] = useState(false);
-  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed'>('pending');
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [codeError, setCodeError] = useState('');
-  const [premiumStatus, setPremiumStatus] = useState<'none' | 'active' | 'expired'>('none');
-
-  useEffect(() => {
-    // Check premium status on component mount and when user changes
-    const checkPremiumStatus = () => {
-      if (isPremiumEnabled(user?.id)) {
-        setPremiumStatus('active');
-      } else if (isPremiumExpired(user?.id)) {
-        setPremiumStatus('expired');
-      } else {
-        setPremiumStatus('none');
-      }
-    };
-
-    checkPremiumStatus();
-  }, [user?.id]); // Re-run when user changes if we add user dependency
+  
+  // Get premium status - single source of truth
+  const premium = getPremiumStatus(user?.id);
 
   // Migrate old premium data when user changes
   useEffect(() => {
@@ -62,7 +46,6 @@ export default function Pricing() {
   const handleUpgrade = () => {
     // Open payment link in new tab
     window.open('https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01', '_blank');
-    // Don't automatically show payment status - let user check manually if needed
   };
 
   const handleActivateWithCode = () => {
@@ -74,8 +57,9 @@ export default function Pricing() {
     if (activateWithCode(activationCode.trim(), user?.id)) {
       setCodeError('');
       setShowCodeInput(false);
-      setPremiumStatus('active');
       alert('Premium activated successfully!');
+      // Force refresh to show new status
+      window.location.reload();
     } else {
       setCodeError('Invalid activation code. Please check and try again.');
     }
@@ -85,83 +69,12 @@ export default function Pricing() {
     window.open('https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01', '_blank');
   };
 
-  if (showPaymentStatus) {
-    return (
-      <div className="min-h-screen bg-black text-[#c4c4c6] flex items-center justify-center px-6 py-16">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-2xl w-full border border-[#1a1a1d] bg-[#0a0a0b] p-10 shadow-2xl text-center"
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className="w-16 h-16 rounded-full bg-[#2d4a3a] flex items-center justify-center mx-auto mb-6"
-          >
-            <CreditCard className="w-8 h-8 text-[#3dd98f]" />
-          </motion.div>
-
-          <h1 className="text-3xl font-light tracking-wide mb-4">Complete Your Payment</h1>
-          <p className="text-[#8a8a8d] max-w-xl mx-auto text-sm leading-relaxed mb-6">
-            Finish your payment on Stripe, then click the button below to verify and activate your premium account automatically.
-          </p>
-
-          <div className="bg-[#0e0e10] border border-[#1a1a1d] p-6 mb-6 text-left space-y-3">
-            <div className="flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-[#3dd98f]" />
-              <p className="text-sm text-[#c4c4c6]">Use test card: 4242 4242 4242 4242</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-[#3dd98f]" />
-              <p className="text-sm text-[#c4c4c6]">Payment verification takes 2-3 seconds</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <Zap className="w-5 h-5 text-[#3dd98f]" />
-              <p className="text-sm text-[#c4c4c6]">Premium activates immediately upon verification</p>
-            </div>
-          </div>
-
-          {paymentStatus === 'success' && (
-            <div className="bg-green-900/20 border border-green-500/30 p-4 mb-6 rounded">
-              <p className="text-green-400 text-sm">✅ Payment verified! Premium activated successfully.</p>
-            </div>
-          )}
-
-          {paymentStatus === 'failed' && (
-            <div className="bg-red-900/20 border border-red-500/30 p-4 mb-6 rounded">
-              <p className="text-red-400 text-sm">❌ Payment not found. Please complete payment first or contact support.</p>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <button
-              onClick={handleCheckPayment}
-              disabled={isCheckingPayment || paymentStatus === 'success'}
-              className="w-full px-6 py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-all duration-300 disabled:opacity-50"
-            >
-              {isCheckingPayment ? 'Verifying Payment...' : paymentStatus === 'success' ? 'Premium Activated!' : 'Check Payment Status'}
-            </button>
-
-            <button
-              onClick={() => setShowPaymentStatus(false)}
-              className="w-full px-6 py-3 border border-[#1a1a1d] hover:bg-[#1a1a1d] text-[#c4c4c6] font-semibold text-sm tracking-wide transition-all duration-300"
-            >
-              Back to Pricing
-            </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-black text-[#c4c4c6] px-6 py-12">
       <div className="max-w-6xl mx-auto">
 
         {/* Premium Status Banner */}
-        {premiumStatus === 'active' && (
+        {premium.active && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -171,16 +84,16 @@ export default function Pricing() {
               <Crown className="w-4 h-4" />
               <span className="text-sm font-medium">Premium Plan Active</span>
             </div>
-            {getPremiumExpiryDate(user?.id) && (
+            {premium.expiresAt && (
               <p className="text-xs text-[#6a6a6d] mt-1">
-                Expires: {getPremiumExpiryDate(user?.id)?.toLocaleDateString()}
+                Expires: {new Date(premium.expiresAt).toLocaleDateString()}
               </p>
             )}
           </motion.div>
         )}
 
         {/* Premium Expired Banner */}
-        {premiumStatus === 'expired' && (
+        {premium.expiresAt && new Date(premium.expiresAt) < new Date() && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -282,7 +195,7 @@ export default function Pricing() {
             </button>
 
             {/* More Visible "Already Paid?" Button */}
-            {premiumStatus !== 'active' && (
+            {!premium.active && (
               <div className="mt-4">
                 <button
                   onClick={() => setShowCodeInput(!showCodeInput)}

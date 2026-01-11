@@ -1,176 +1,218 @@
 /**
- * Premium subscription management using localStorage
- * Frontend-only MVP solution with user-specific storage
+ * Premium subscription management - SINGLE SOURCE OF TRUTH
+ * 
+ * RULES:
+ * 1. This file is the ONLY authority on premium status
+ * 2. UI components READ ONLY via getPremiumStatus()
+ * 3. All activation flows converge to activatePremium()
+ * 4. No "pending" states - premium is either ON or OFF
+ * 5. Stripe is just a trigger, not a decision maker
  */
 
-import { readUser } from '@/utils/storage';
+// ============================================================================
+// TYPES
+// ============================================================================
 
-// Get current user ID from Clerk (more reliable than stored username)
-function getCurrentUserId(): string {
-  // Try to get user from Clerk context if available
+export interface PremiumStatus {
+  active: boolean;
+  expiresAt: string | null;
+  activationCode: string | null;
+}
+
+// ============================================================================
+// INTERNAL HELPERS (NOT EXPORTED)
+// ============================================================================
+
+function getStorageKey(userId?: string): string {
+  // Use provided userId or fallback to 'guest'
+  const user = userId || 'guest';
+  return `mizan_premium_${user}`;
+}
+
+function generateActivationCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = 'PREM-';
+  for (let i = 0; i < 16; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+    if (i === 3 || i === 7 || i === 11) code += '-';
+  }
+  return code;
+}
+
+function readPremiumData(userId?: string): PremiumStatus | null {
   try {
-    // This is a workaround - we need to access the current user somehow
-    // For now, let's use a combination of approaches
-    const clerkUser = (window as any).Clerk?.user;
-    if (clerkUser?.id) {
-      return clerkUser.id;
-    }
+    const key = getStorageKey(userId);
+    const data = localStorage.getItem(key);
+    if (!data) return null;
+    return JSON.parse(data);
   } catch (e) {
-    // Fall back to stored user
+    console.warn('Failed to read premium data:', e);
+    return null;
+  }
+}
+
+function writePremiumData(data: PremiumStatus, userId?: string): void {
+  try {
+    const key = getStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to write premium data:', e);
+  }
+}
+
+// ============================================================================
+// PUBLIC API - THE ONLY EXPORTS COMPONENTS SHOULD USE
+// ============================================================================
+
+/**
+ * Get premium status - THE SINGLE SOURCE OF TRUTH
+ * This is the ONLY function UI components should call
+ * Returns: { active: boolean, expiresAt: string | null, activationCode: string | null }
+ */
+export function getPremiumStatus(userId?: string): PremiumStatus {
+  const data = readPremiumData(userId);
+  
+  if (!data) {
+    return { active: false, expiresAt: null, activationCode: null };
   }
 
-  // Fall back to stored username for backward compatibility
-  return readUser() || 'guest';
-}
-
-function getUserKey(baseKey: string, userId?: string): string {
-  const user = userId || getCurrentUserId();
-  return `${baseKey}_${user}`;
-}
-
-export function isPremiumEnabled(userId?: string): boolean {
-  const enabled = localStorage.getItem(getUserKey("premium_enabled", userId)) === "true";
-  if (!enabled) return false;
-
-  // Check if expired
-  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at", userId));
-  if (expiryDate) {
-    const expiry = new Date(expiryDate);
+  // Auto-expire check
+  if (data.expiresAt) {
+    const expiry = new Date(data.expiresAt);
     const now = new Date();
+    
     if (now > expiry) {
-      // Auto-expire premium
-      clearPremiumStates(userId);
-      return false;
+      // Expired - clear and return inactive
+      clearPremiumData(userId);
+      return { active: false, expiresAt: null, activationCode: null };
     }
   }
 
-  return true;
+  return data;
 }
 
-export function isPremiumPending(userId?: string): boolean {
-  return localStorage.getItem(getUserKey("premium_pending", userId)) === "true";
-}
-
-export function isPremiumExpired(userId?: string): boolean {
-  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at", userId));
-  if (!expiryDate) return false;
-
-  const expiry = new Date(expiryDate);
-  const now = new Date();
-  return now > expiry;
-}
-
+/**
+ * Activate premium - ALL FLOWS CONVERGE HERE
+ * Called by: Stripe success, manual code entry, redeem URL
+ * Returns: activation code for backup
+ */
 export function activatePremium(userId?: string): string {
   const oneYearFromNow = new Date();
   oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
 
-  localStorage.setItem(getUserKey("premium_enabled", userId), "true");
-  localStorage.setItem(getUserKey("premium_expires_at", userId), oneYearFromNow.toISOString());
-  localStorage.setItem(getUserKey("premium_activation_code", userId), generateActivationCode());
-  localStorage.removeItem(getUserKey("premium_pending", userId));
+  const code = generateActivationCode();
 
-  // Return the code instead of showing alert
-  return localStorage.getItem(getUserKey("premium_activation_code", userId)) || "";
+  const premiumData: PremiumStatus = {
+    active: true,
+    expiresAt: oneYearFromNow.toISOString(),
+    activationCode: code,
+  };
+
+  writePremiumData(premiumData, userId);
+  
+  return code;
 }
 
-export function getActivationCode(userId?: string): string | null {
-  return localStorage.getItem(getUserKey("premium_activation_code", userId));
-}
-
-export function activateWithCode(code: string, userId?: string): boolean {
-  const storedCode = localStorage.getItem(getUserKey("premium_activation_code", userId));
-  if (storedCode === code) {
+/**
+ * Validate and activate with backup code
+ * Returns: true if code matched and activated, false otherwise
+ */
+export function activateWithCode(inputCode: string, userId?: string): boolean {
+  const currentData = readPremiumData(userId);
+  
+  // If user already has premium with matching code, ensure it's active
+  if (currentData?.activationCode === inputCode) {
+    // Reactivate for another year
     const oneYearFromNow = new Date();
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
-
-    localStorage.setItem(getUserKey("premium_enabled", userId), "true");
-    localStorage.setItem(getUserKey("premium_expires_at", userId), oneYearFromNow.toISOString());
+    
+    writePremiumData({
+      active: true,
+      expiresAt: oneYearFromNow.toISOString(),
+      activationCode: currentData.activationCode,
+    }, userId);
+    
     return true;
   }
+
   return false;
 }
 
+/**
+ * Clear all premium data for user
+ */
+export function clearPremiumData(userId?: string): void {
+  const key = getStorageKey(userId);
+  localStorage.removeItem(key);
+}
+
+// ============================================================================
+// LEGACY COMPATIBILITY - Kept for existing code, but marked as deprecated
+// ============================================================================
+
+/** @deprecated Use getPremiumStatus().active instead */
+export function isPremiumEnabled(userId?: string): boolean {
+  return getPremiumStatus(userId).active;
+}
+
+/** @deprecated Use getPremiumStatus().expiresAt instead */
 export function getPremiumExpiryDate(userId?: string): Date | null {
-  const expiryDate = localStorage.getItem(getUserKey("premium_expires_at", userId));
-  return expiryDate ? new Date(expiryDate) : null;
+  const status = getPremiumStatus(userId);
+  return status.expiresAt ? new Date(status.expiresAt) : null;
 }
 
-export function setPremiumPending(userId?: string): void {
-  localStorage.setItem(getUserKey("premium_pending", userId), "true");
+/** @deprecated Use getPremiumStatus().activationCode instead */
+export function getActivationCode(userId?: string): string | null {
+  return getPremiumStatus(userId).activationCode;
 }
 
-export function clearPremiumStates(userId?: string): void {
-  localStorage.removeItem(getUserKey("premium_enabled", userId));
-  localStorage.removeItem(getUserKey("premium_pending", userId));
-  localStorage.removeItem(getUserKey("premium_expires_at", userId));
-  localStorage.removeItem(getUserKey("premium_activation_code", userId));
-}
+// ============================================================================
+// MIGRATION & CLEANUP
+// ============================================================================
 
+/**
+ * Migrate old premium data structure to new consolidated format
+ */
 export function migrateOldPremiumData(userId: string): void {
-  // Clear any old premium data that might be using stored username
-  const oldUser = readUser() || 'guest';
-  if (oldUser !== userId) {
-    const oldKeys = [
-      `premium_enabled_${oldUser}`,
-      `premium_pending_${oldUser}`,
-      `premium_expires_at_${oldUser}`,
-      `premium_activation_code_${oldUser}`
-    ];
+  // Check for old format
+  const oldKeys = [
+    `premium_enabled_${userId}`,
+    `premium_expires_at_${userId}`,
+    `premium_activation_code_${userId}`,
+    `premium_pending_${userId}`, // Remove pending flags
+  ];
+
+  const hasOldData = oldKeys.some(key => localStorage.getItem(key) !== null);
+  
+  if (hasOldData) {
+    // Read old data
+    const wasEnabled = localStorage.getItem(`premium_enabled_${userId}`) === 'true';
+    const oldExpiry = localStorage.getItem(`premium_expires_at_${userId}`);
+    const oldCode = localStorage.getItem(`premium_activation_code_${userId}`);
+
+    if (wasEnabled && oldExpiry) {
+      // Migrate to new format
+      writePremiumData({
+        active: true,
+        expiresAt: oldExpiry,
+        activationCode: oldCode,
+      }, userId);
+    }
+
+    // Clean up old keys
     oldKeys.forEach(key => localStorage.removeItem(key));
   }
 
-  // Also clear any undefined keys that might have been created during loading
-  const undefinedKeys = [
+  // Also clear undefined/guest keys that might have accumulated
+  const keysToClean = [
     'premium_enabled_undefined',
-    'premium_pending_undefined',
     'premium_expires_at_undefined',
-    'premium_activation_code_undefined'
+    'premium_activation_code_undefined',
+    'premium_pending_undefined',
+    'premium_enabled_guest',
+    'premium_expires_at_guest',
+    'premium_activation_code_guest',
+    'premium_pending_guest',
   ];
-  undefinedKeys.forEach(key => localStorage.removeItem(key));
-}
-
-export function clearUserPremiumData(): void {
-  const user = readUser() || 'guest';
-  const keysToRemove = [
-    `premium_enabled_${user}`,
-    `premium_pending_${user}`,
-    `premium_expires_at_${user}`,
-    `premium_activation_code_${user}`
-  ];
-
-  keysToRemove.forEach(key => {
-    localStorage.removeItem(key);
-  });
-}
-
-export function debugPremiumKeys(): void {
-  const allKeys = Object.keys(localStorage).filter(key => key.includes('premium_'));
-  console.log('Premium keys in localStorage:', allKeys);
-  const currentUser = readUser() || 'guest';
-  console.log('Current user:', currentUser);
-}
-
-// Check for Stripe redirect with payment=success
-export function checkStripeRedirect(): boolean {
-  const urlParams = new URLSearchParams(window.location.search);
-  return (
-    urlParams.get('payment') === 'success' ||
-    urlParams.get('redirect_status') === 'succeeded' ||
-    urlParams.has('session_id')
-  );
-}
-
-// Handle Stripe redirect - call this on dashboard mount
-export function handleStripeRedirect(userId?: string): void {
-  if (checkStripeRedirect()) {
-    setPremiumPending(userId);
-    // Clean up URL
-    const url = new URL(window.location.href);
-    url.searchParams.delete('payment');
-    window.history.replaceState({}, '', url.toString());
-  }
-}
-
-function generateActivationCode(): string {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  keysToClean.forEach(key => localStorage.removeItem(key));
 }

@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils/urls';
 import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
-import { handleStripeRedirect, checkStripeRedirect, isPremiumPending, activatePremium, migrateOldPremiumData } from '@/lib/premium';
+import { activatePremium, migrateOldPremiumData } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 function formatDateLabel(dateKey: string): string {
@@ -37,22 +37,29 @@ export default function Dashboard() {
   const [isActivating, setIsActivating] = useState(false);
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
-  const [premiumRefreshKey, setPremiumRefreshKey] = useState(0);
 
-  // If we came back from Stripe, mark it so we can handle once user is loaded
+  // Check for Stripe redirect and activate premium immediately
   useEffect(() => {
-    if (checkStripeRedirect()) {
-      sessionStorage.setItem('stripe_redirect_pending', 'true');
-    }
-  }, []);
+    if (!user?.id) return;
 
-  // Handle Stripe redirect once user is available
-  useEffect(() => {
-    if (user?.id && sessionStorage.getItem('stripe_redirect_pending') === 'true') {
-      handleStripeRedirect(user.id);
-      sessionStorage.removeItem('stripe_redirect_pending');
-      // Force premium UI to refresh
-      setPremiumRefreshKey(prev => prev + 1);
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasStripeSuccess = 
+      urlParams.get('payment') === 'success' ||
+      urlParams.get('redirect_status') === 'succeeded' ||
+      urlParams.has('session_id');
+
+    if (hasStripeSuccess) {
+      // Stripe success - activate premium immediately
+      const code = activatePremium(user.id);
+      setActivationCode(code);
+      setShowPremiumActivated(true);
+
+      // Clean URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete('payment');
+      url.searchParams.delete('redirect_status');
+      url.searchParams.delete('session_id');
+      window.history.replaceState({}, '', url.toString());
     }
   }, [user?.id]);
 
@@ -73,8 +80,6 @@ export default function Dashboard() {
     setActivationCode(code);
     setShowPremiumActivated(true);
     setIsActivating(false);
-    // Force premium UI to refresh
-    setPremiumRefreshKey(prev => prev + 1);
 
     // No longer auto-hide - user must click copy or X to close
   };
@@ -137,7 +142,7 @@ export default function Dashboard() {
       lastPoints,
       user
     };
-  }, [cyclesCompleted, premiumRefreshKey]);
+  }, [cyclesCompleted]);
 
   const handlePrimary = () => {
     navigate(createPageUrl('CheckIn'));
@@ -146,61 +151,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-[#c4c4c6] px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-2xl mx-auto">
-
-        {/* Premium Pending Banner */}
-        {isPremiumPending(user?.id) && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-[#1a1a1d] border border-[#2a2a2d] rounded-lg"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Crown className="w-5 h-5 text-[#3dd98f]" />
-                <span className="text-sm text-[#c4c4c6]">Payment received. Activate premium to continue.</span>
-              </div>
-              <button
-                onClick={handleActivatePremium}
-                disabled={isActivating}
-                className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] disabled:bg-[#2d4a3a] text-[#0a0a0a] text-sm font-medium rounded transition-all duration-300 flex items-center gap-2 min-w-[120px] justify-center"
-              >
-                {isActivating ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    className="flex items-center gap-2"
-                  >
-                    <motion.svg
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      animate={{ pathLength: 1, opacity: 1 }}
-                      transition={{ duration: 0.5, delay: 0.2, ease: "easeInOut" }}
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-[#0a0a0a]"
-                    >
-                      <motion.path
-                        d="M20 6L9 17L4 12"
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.5, delay: 0.2, ease: "easeInOut" }}
-                      />
-                    </motion.svg>
-                    <span>Activated</span>
-                  </motion.div>
-                ) : (
-                  <span>Activate Premium</span>
-                )}
-              </button>
-            </div>
-          </motion.div>
-        )}
 
         {/* Premium Activated Confirmation */}
         {showPremiumActivated && (
