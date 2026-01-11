@@ -38,9 +38,11 @@ export default function Dashboard() {
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
 
-  // Handle Stripe redirect on component mount
+  // Handle Stripe redirect on component mount - only when user is loaded
   useEffect(() => {
-    handleStripeRedirect(user?.id);
+    if (user?.id) {
+      handleStripeRedirect(user.id);
+    }
   }, [user?.id]);
 
   // Migrate old premium data when user changes

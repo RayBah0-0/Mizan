@@ -48,10 +48,7 @@ export function isPremiumEnabled(userId?: string): boolean {
 }
 
 export function isPremiumPending(userId?: string): boolean {
-  const key = getUserKey("premium_pending", userId);
-  const result = localStorage.getItem(key) === "true";
-  console.log('🔍 isPremiumPending check:', { userId, key, result });
-  return result;
+  return localStorage.getItem(getUserKey("premium_pending", userId)) === "true";
 }
 
 export function isPremiumExpired(userId?: string): boolean {
@@ -112,7 +109,6 @@ export function clearPremiumStates(userId?: string): void {
 export function migrateOldPremiumData(userId: string): void {
   // Clear any old premium data that might be using stored username
   const oldUser = readUser() || 'guest';
-  console.log('🔄 Migration check:', { userId, oldUser, shouldClear: oldUser !== userId });
   if (oldUser !== userId) {
     const oldKeys = [
       `premium_enabled_${oldUser}`,
@@ -120,9 +116,17 @@ export function migrateOldPremiumData(userId: string): void {
       `premium_expires_at_${oldUser}`,
       `premium_activation_code_${oldUser}`
     ];
-    console.log('🧹 Clearing old keys:', oldKeys);
     oldKeys.forEach(key => localStorage.removeItem(key));
   }
+
+  // Also clear any undefined keys that might have been created during loading
+  const undefinedKeys = [
+    'premium_enabled_undefined',
+    'premium_pending_undefined',
+    'premium_expires_at_undefined',
+    'premium_activation_code_undefined'
+  ];
+  undefinedKeys.forEach(key => localStorage.removeItem(key));
 }
 
 export function clearUserPremiumData(): void {
@@ -155,7 +159,6 @@ export function checkStripeRedirect(): boolean {
 // Handle Stripe redirect - call this on dashboard mount
 export function handleStripeRedirect(userId?: string): void {
   if (checkStripeRedirect()) {
-    console.log('🔄 Stripe redirect detected, setting premium pending for user:', userId);
     setPremiumPending(userId);
     // Clean up URL
     const url = new URL(window.location.href);
