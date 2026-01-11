@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
@@ -8,7 +8,8 @@ import { useMizanSession } from '@/contexts/MizanSessionContext';
 export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useClerkAuth();
-  const { isPremium } = useMizanSession();
+  const { isPremium, isLoading } = useMizanSession();
+  const [savedMsg, setSavedMsg] = useState('');
 
   if (!user) {
     return (
@@ -28,11 +29,16 @@ export default function Settings() {
           <p className="text-[#5a5a5d] text-sm">Adjust accountability rules and manage data.</p>
         </div>
 
+        {/* Account Section */}
         <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
           <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Account</h2>
           <div className="space-y-3">
             <p className="text-[#5a5a5d] text-sm">Logged in as <span className="text-[#8a8a8d]">{user.email}</span></p>
-            <p className="text-[#5a5a5d] text-sm">Premium: <span className="text-[#8a8a8d]">{isPremium ? '✅ Active' : 'Inactive'}</span></p>
+            <p className="text-[#5a5a5d] text-sm">
+              Premium: <span className="text-[#8a8a8d]">
+                {isLoading ? 'Loading...' : isPremium ? '✅ Active' : 'Inactive'}
+              </span>
+            </p>
             <button
               type="button"
               onClick={() => {
@@ -46,6 +52,13 @@ export default function Settings() {
             </button>
           </div>
         </section>
+
+        {/* Message Display */}
+        {savedMsg && (
+          <div className="p-4 bg-[#0a0a0b] border border-[#2d4a3a] text-[#4a7a5a] text-sm rounded">
+            {savedMsg}
+          </div>
+        )}
       </div>
     </div>
   );
