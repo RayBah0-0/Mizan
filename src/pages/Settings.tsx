@@ -8,8 +8,17 @@ import { useMizanSession } from '@/contexts/MizanSessionContext';
 export default function Settings() {
   const navigate = useNavigate();
   const { user, signOut } = useClerkAuth();
-  const { isPremium, isLoading } = useMizanSession();
+  const { isPremium, isLoading, premiumUntil, refetch } = useMizanSession();
   const [savedMsg, setSavedMsg] = useState('');
+
+  console.log('[Settings] Premium Status:', { isPremium, isLoading, premiumUntil });
+
+  const handleRefreshSession = async () => {
+    setSavedMsg('Refreshing session...');
+    await refetch();
+    setSavedMsg('Session refreshed!');
+    setTimeout(() => setSavedMsg(''), 2000);
+  };
 
   if (!user) {
     return (
@@ -39,6 +48,16 @@ export default function Settings() {
                 {isLoading ? 'Loading...' : isPremium ? '✅ Active' : 'Inactive'}
               </span>
             </p>
+            {premiumUntil && (
+              <p className="text-[#4a4a4d] text-xs">Expires: {new Date(premiumUntil).toLocaleDateString()}</p>
+            )}
+            <button
+              type="button"
+              onClick={handleRefreshSession}
+              className="px-3 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2d4a3a] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm transition-colors"
+            >
+              Refresh Premium Status
+            </button>
             <button
               type="button"
               onClick={() => {
