@@ -74,6 +74,13 @@ export default function Settings() {
     if (savedDailyCheckin !== null) setNotifyDailyCheckin(savedDailyCheckin === 'true');
     if (savedCycleEnd !== null) setNotifyCycleEnd(savedCycleEnd === 'true');
     if (savedRemindersPerDay) setRemindersPerDay(parseInt(savedRemindersPerDay));
+    
+    // Load access code from localStorage
+    if (user) {
+      const savedAccessCode = localStorage.getItem(`mizan_access_code_${user.id}`);
+      if (savedAccessCode) setCurrentAccessCode(savedAccessCode);
+    }
+    
     // Load settings (theme, focus, feature flags)
     const s = readSettings();
     const nextTheme = s.theme || 'dark';
@@ -130,7 +137,9 @@ export default function Settings() {
 
     setIsLoadingCode(true);
     try {
-      await apiSetAccessCode(accessCode.trim());
+      // Store access code locally (backend removed)
+      const storageKey = `mizan_access_code_${user?.id}`;
+      localStorage.setItem(storageKey, accessCode.trim());
       setCurrentAccessCode(accessCode.trim());
       setSavedMsg('Access code saved! Use it to login on other devices.');
 
