@@ -52,7 +52,6 @@ export default function Dashboard() {
   const [guidedPrompt, setGuidedPrompt] = useState<GuidedPrompt | null>(null);
   const [showGuidedPrompt, setShowGuidedPrompt] = useState(false);
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);
-  const [hasShownNiyyah, setHasShownNiyyah] = useState(false);
   const currentNiyyah = getCurrentNiyyah();
 
   // Check quiet mode on mount
@@ -97,14 +96,19 @@ export default function Dashboard() {
 
   // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
   useEffect(() => {
-    if (premium.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownNiyyah) {
+    if (!user?.id) return;
+    
+    const niyyahShownKey = `niyyah_shown_${user.id}_cycle_${cyclesCompleted}`;
+    const hasShownBefore = localStorage.getItem(niyyahShownKey) === 'true';
+    
+    if (premium.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownBefore) {
       const timer = setTimeout(() => {
         setShowNiyyahModal(true);
-        setHasShownNiyyah(true);
+        localStorage.setItem(niyyahShownKey, 'true');
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [premium.active, currentProgress, currentNiyyah, hasShownNiyyah]);
+  }, [premium.active, currentProgress, currentNiyyah, cyclesCompleted, user?.id]);
 
   const handleNiyyahSubmit = (intention: string) => {
     setCurrentNiyyah(intention);
