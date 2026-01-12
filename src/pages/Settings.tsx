@@ -326,34 +326,12 @@ export default function Settings() {
               <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
                 <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Username</h2>
                 <p className="text-[#4a4a4d] text-xs mb-3">
-                  How you appear on the leaderboard. For security, username changes require password verification via your profile menu (top right avatar).
+                  How you appear on the leaderboard. Usernames are permanent and cannot be changed.
                 </p>
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleUsernameSave()}
-                      className={`flex-1 bg-[#0e0e10] border ${usernameError ? 'border-red-500' : 'border-[#1a1a1d]'} focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300 placeholder:text-[#3a3a3d]`}
-                      placeholder={user?.username || "Your username"}
-                      maxLength={20}
-                    />
-                    <motion.button
-                      type="button"
-                      onClick={handleUsernameSave}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-medium text-sm tracking-wide transition-all duration-300"
-                    >
-                      Update
-                    </motion.button>
+                  <div className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] text-[#8a8a8d] text-sm tracking-wide rounded">
+                    {user?.username || 'Not set'}
                   </div>
-                  {usernameError ? (
-                    <p className="text-red-400 text-xs">{usernameError}</p>
-                  ) : (
-                    <p className="text-[#3a3a3d] text-xs">3-20 characters, letters/numbers/underscores only</p>
-                  )}
                 </div>
               </section>
             </>
