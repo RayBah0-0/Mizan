@@ -57,7 +57,7 @@ export default function Layout({ children }: LayoutProps) {
                   userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d] shadow-xl',
                   userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d] bg-transparent',
                   userButtonPopoverActionButtonText: 'text-[#c4c4c6]',
-                  userButtonPopoverActionButtonIcon: 'text-[#8a8a8d]',
+                  userButtonPopoverActionButtonIcon: 'text-[#c4c4c6]',
                   userButtonPopoverFooter: 'hidden',
                   userButtonPopoverMain: 'bg-[#0a0a0b]',
                   userButtonPopoverActions: 'bg-[#0a0a0b]',
@@ -108,6 +108,11 @@ export default function Layout({ children }: LayoutProps) {
               }}
             >
               <UserButton.MenuItems>
+                <UserButton.Action
+                  label="Manage account"
+                  labelIcon={<span>👤</span>}
+                  open="managePicture"
+                />
                 <UserButton.Link
                   label="Settings"
                   labelIcon={<span>⚙️</span>}
