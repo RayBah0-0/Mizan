@@ -1,18 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Heart } from 'lucide-react';
 import { useCycle } from '@/hooks/useCycle';
 import { CycleGrid } from '@/components/CycleGrid';
 import { createPageUrl } from '@/utils/urls';
+import { NiyyahModal } from '@/components/NiyyahModal';
+import { getPremiumStatus } from '@/lib/premium';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 export default function Cycle() {
   const navigate = useNavigate();
-  const { cycles, cyclesCompleted, currentProgress } = useCycle();
+  const { user } = useClerkAuth();
+  const premium = getPremiumStatus(user?.id);
+  const { cycles, cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const previous = cycles.length > 1 ? cycles[cycles.length - 2] : null;
+  const [showNiyyahModal, setShowNiyyahModal] = useState(false);
+  const currentNiyyah = getCurrentNiyyah();
+
+  // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
+  useEffect(() => {
+    if (premium.active && currentProgress === 0 && !currentNiyyah) {
+      setShowNiyyahModal(true);
+    }
+  }, [premium.active, currentProgress, currentNiyyah]);
+
+  const handleNiyyahSubmit = (intention: string) => {
+    setCurrentNiyyah(intention);
+    setShowNiyyahModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0b] px-6 py-12 md:py-20">
       <div className="max-w-lg mx-auto">
+
+        <NiyyahModal 
+          isOpen={showNiyyahModal}
+          onClose={() => setShowNiyyahModal(false)}
+          onSubmit={handleNiyyahSubmit}
+        />
 
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.6, delay: 0.2 }} className="mb-8">
           <motion.h1 
@@ -32,6 +58,22 @@ export default function Cycle() {
             Seven completed days = one cycle.
           </motion.p>
         </motion.div>
+
+        {/* Show Niyyah if set (Premium feature) */}
+        {currentNiyyah && premium.active && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.5 }}
+            className="mb-6 p-4 bg-[#0e0e10] border border-[#2d4a3a]/30 rounded"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="w-4 h-4 text-[#3dd98f]" />
+              <p className="text-xs text-[#6a6a6d] uppercase tracking-wide">Your Niyyah</p>
+            </div>
+            <p className="text-sm text-[#c4c4c6] leading-relaxed">{currentNiyyah}</p>
+          </motion.div>
+        )}
 
         <motion.div 
           className="space-y-4"

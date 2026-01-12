@@ -5,6 +5,9 @@ import { Lock } from 'lucide-react';
 import { listMissions, listAchievements } from '@/utils/gamification';
 import { useCycle } from '@/hooks/useCycle';
 import { CycleGrid } from '@/components/CycleGrid';
+import { getPremiumStatus } from '@/lib/premium';
+import { isQuietModeEnabled } from '@/utils/quietMode';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 // Animated counter that counts from 0 to final value
 const AnimatedCounter = ({ to, delay }: { to: number; delay: number }) => {
@@ -34,6 +37,33 @@ const AnimatedCounter = ({ to, delay }: { to: number; delay: number }) => {
   }, [to, delay]);
 
   return <span>{count}</span>;
+};
+
+const RANK_MEANINGS: Record<string, { meaning: string, direction: string }> = {
+  'Ghāfil': {
+    meaning: 'You are at the beginning. Growth starts with awareness.',
+    direction: 'Complete your first day to awaken to consistency.'
+  },
+  'Muntabih': {
+    meaning: 'You have taken the first step. Awareness has begun.',
+    direction: 'Complete your first cycle to show commitment.'
+  },
+  'Multazim': {
+    meaning: 'You have made a promise and kept it once.',
+    direction: 'Complete 3 cycles to develop regularity.'
+  },
+  'Muwāẓib': {
+    meaning: 'Consistency is becoming natural to you.',
+    direction: 'Complete 7 cycles to deepen accountability.'
+  },
+  'Muhāsib': {
+    meaning: 'You hold yourself to account without being watched.',
+    direction: 'Reach 30 days completed to embody steadfastness.'
+  },
+  'Muttazin': {
+    meaning: 'You are steady. Your growth is deep and rooted.',
+    direction: 'Maintain this state with humility and intention.'
+  }
 };
 
 const StatBlock = ({ value, label, delay, sealed }: { value: number; label: string; delay: number; sealed?: boolean }) => (
@@ -98,6 +128,9 @@ const RANK_INFO: Record<RankTitle, { definition: string; nextRank?: RankTitle; n
 };
 
 export default function Status() {
+  const { user } = useClerkAuth();
+  const premium = getPremiumStatus(user?.id);
+  const quietMode = isQuietModeEnabled();
   const { cyclesCompleted, currentProgress } = useCycle();
   const missions = React.useMemo(() => listMissions(readMissionsProgress()), []);
   const achievements = React.useMemo(() => listAchievements(readAchievementsProgress()), []);
@@ -223,6 +256,19 @@ export default function Status() {
           >
             {rankInfo.definition}
           </motion.p>
+          
+          {premium.active && RANK_MEANINGS[totals.rank] && (
+            <motion.div
+              className="p-3 bg-[#0e0e10] border border-[#2d4a3a]/30 rounded mb-4"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ delay: 0.95 }}
+            >
+              <p className="text-sm text-[#c4c4c6] mb-2">{RANK_MEANINGS[totals.rank].meaning}</p>
+              <p className="text-xs text-[#6a6a6d]">{RANK_MEANINGS[totals.rank].direction}</p>
+            </motion.div>
+          )}
+          
           {rankInfo.nextRank && (
             <motion.div
               className="pt-4 border-t border-[#1a1a1d]"

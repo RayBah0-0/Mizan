@@ -9,6 +9,7 @@ interface RankDisplayProps {
   completedDays: number;
   cyclesCompleted: number;
   nextRankIn?: number;
+  showMeaning?: boolean; // Premium feature
 }
 
 const rankEmojis: Record<RankTitle, string> = {
@@ -29,6 +30,33 @@ const rankLabels: Record<RankTitle, string> = {
   'Muttazin': 'The Steadfast'
 };
 
+const rankMeanings: Record<RankTitle, { meaning: string, direction: string }> = {
+  'Ghāfil': {
+    meaning: 'You are at the beginning. Growth starts with awareness.',
+    direction: 'Complete your first day to awaken to consistency.'
+  },
+  'Muntabih': {
+    meaning: 'You have taken the first step. Awareness has begun.',
+    direction: 'Complete your first cycle to show commitment.'
+  },
+  'Multazim': {
+    meaning: 'You have made a promise and kept it once.',
+    direction: 'Complete 3 cycles to develop regularity.'
+  },
+  'Muwāẓib': {
+    meaning: 'Consistency is becoming natural to you.',
+    direction: 'Complete 7 cycles to deepen accountability.'
+  },
+  'Muhāsib': {
+    meaning: 'You hold yourself to account without being watched.',
+    direction: 'Reach 30 days completed to embody steadfastness.'
+  },
+  'Muttazin': {
+    meaning: 'You are steady. Your growth is deep and rooted.',
+    direction: 'Maintain this state with humility and intention.'
+  }
+};
+
 const rankThresholds = [
   { rank: 'Ghāfil' as RankTitle, days: 0, cycles: 0 },
   { rank: 'Muntabih' as RankTitle, days: 1, cycles: 0 },
@@ -38,9 +66,10 @@ const rankThresholds = [
   { rank: 'Muttazin' as RankTitle, days: 30, cycles: 0 }
 ];
 
-export function RankDisplay({ rank, completedDays, cyclesCompleted }: RankDisplayProps) {
+export function RankDisplay({ rank, completedDays, cyclesCompleted, showMeaning = false }: RankDisplayProps) {
   const currentIndex = rankThresholds.findIndex(r => r.rank === rank);
   const nextRank = rankThresholds[currentIndex + 1];
+  const rankInfo = rankMeanings[rank];
   
   let progressToNext = 0;
   let progressLabel = '';
@@ -78,6 +107,17 @@ export function RankDisplay({ rank, completedDays, cyclesCompleted }: RankDispla
           <p className="text-xs text-[#6a6a6d]">{rank}</p>
         </div>
       </div>
+
+      {showMeaning && rankInfo && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mb-4 p-3 bg-[#0e0e10] border border-[#1a1a1d] rounded"
+        >
+          <p className="text-sm text-[#c4c4c6] mb-2">{rankInfo.meaning}</p>
+          <p className="text-xs text-[#6a6a6d]">{rankInfo.direction}</p>
+        </motion.div>
+      )}
 
       {nextRank && (
         <div className="space-y-2">

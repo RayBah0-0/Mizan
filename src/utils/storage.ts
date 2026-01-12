@@ -103,6 +103,8 @@ export interface AchievementProgressEntry {
 export interface CycleRecord {
   id: string;
   days: string[]; // completed date keys in order
+  niyyah?: string; // Premium: intention set for this cycle
+  completedAt?: string; // ISO timestamp when cycle completed
 }
 
 export interface StoredData {

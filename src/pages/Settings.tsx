@@ -53,6 +53,7 @@ export default function Settings() {
   const [featureFlags, setFeatureFlags] = useState({ prioritySupport: false, earlyAccess: false, supportChannel: 'discord' as 'discord' | 'email' | 'none' });
   const [showPremiumKey, setShowPremiumKey] = useState(false);
   const [premiumKeyCopyStatus, setPremiumKeyCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [quietMode, setQuietMode] = useState(false);
   const navigate = useNavigate();
   const { user, signOut } = useClerkAuth();
 
@@ -80,6 +81,10 @@ export default function Settings() {
       const savedAccessCode = localStorage.getItem(`mizan_access_code_${user.id}`);
       if (savedAccessCode) setCurrentAccessCode(savedAccessCode);
     }
+    
+    // Load Quiet Mode (premium feature)
+    const savedQuietMode = localStorage.getItem('mizan_quiet_mode');
+    if (savedQuietMode !== null) setQuietMode(savedQuietMode === 'true');
     
     // Load settings (theme, focus, feature flags)
     const s = readSettings();
@@ -406,6 +411,27 @@ export default function Settings() {
                     </div>
                   </motion.div>
                 )}
+              </div>
+            </section>
+          )}
+
+          {/* Quiet Mode - Premium Feature */}
+          {premium.active && (
+            <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <h2 className="text-[#c4c4c6] text-sm tracking-wide">Quiet Mode</h2>
+                  <p className="text-[#4a4a4d] text-xs mt-1">Hide streaks, points, and ranks. Focus on intention only.</p>
+                </div>
+                <AnimatedToggle
+                  checked={quietMode}
+                  onChange={(val) => {
+                    setQuietMode(val);
+                    localStorage.setItem('mizan_quiet_mode', val.toString());
+                    setSavedMsg(val ? 'Quiet Mode enabled' : 'Quiet Mode disabled');
+                    setTimeout(() => setSavedMsg(''), 2000);
+                  }}
+                />
               </div>
             </section>
           )}

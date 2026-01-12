@@ -8,6 +8,7 @@ import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
 import { activatePremium, migrateOldPremiumData } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
+import { isQuietModeEnabled } from '@/utils/quietMode';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -37,6 +38,12 @@ export default function Dashboard() {
   const [isActivating, setIsActivating] = useState(false);
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
+  const [quietMode, setQuietMode] = useState(false);
+
+  // Check quiet mode on mount
+  useEffect(() => {
+    setQuietMode(isQuietModeEnabled());
+  }, []);
 
   // Check for Stripe redirect and activate premium immediately
   useEffect(() => {
@@ -329,18 +336,19 @@ export default function Dashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
         >
-          <div className="grid grid-cols-2 gap-4 mb-6">
-            <div className="p-4 bg-[#0e0e10] border border-[#1a1a1d]">
-              <div className="flex items-center gap-2 mb-2">
-                <Flame className="w-4 h-4 text-[#ff6b4a]" />
-                <p className="text-[10px] uppercase tracking-[0.15em] text-[#4a4a4d]">Streak</p>
-              </div>
-              <motion.p 
-                className="text-3xl text-[#c4c4c6] font-light"
-                key={metrics.currentStreak}
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 200 }}
+          {!quietMode && (
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div className="p-4 bg-[#0e0e10] border border-[#1a1a1d]">
+                <div className="flex items-center gap-2 mb-2">
+                  <Flame className="w-4 h-4 text-[#ff6b4a]" />
+                  <p className="text-[10px] uppercase tracking-[0.15em] text-[#4a4a4d]">Streak</p>
+                </div>
+                <motion.p 
+                  className="text-3xl text-[#c4c4c6] font-light"
+                  key={metrics.currentStreak}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
               >
                 {metrics.currentStreak}
               </motion.p>
@@ -365,42 +373,45 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+          )}
 
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-[#4a4a4d]" />
-              <p className="text-[11px] uppercase tracking-[0.18em] text-[#4a4a4d]">Leaderboard</p>
+          {!quietMode && (
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <TrendingUp className="w-4 h-4 text-[#4a4a4d]" />
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[#4a4a4d]">Leaderboard</p>
+              </div>
+              <div className="space-y-2">
+                {metrics.leaderboard.slice(0, 5).map((entry, idx) => (
+                  <motion.div 
+                    key={entry.user} 
+                    className="flex items-center justify-between text-sm text-[#c4c4c6] p-2 bg-[#0e0e10] border border-[#1a1a1d]"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + idx * 0.05 }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className={`text-[10px] font-semibold w-5 h-5 flex items-center justify-center rounded-full ${
+                        idx === 0 ? 'bg-[#3dd98f] text-black' : 
+                        idx === 1 ? 'bg-[#6a6a6d] text-black' : 
+                        idx === 2 ? 'bg-[#8a6040] text-black' : 
+                        'bg-[#1a1a1d] text-[#4a4a4d]'
+                      }`}>
+                        {idx + 1}
+                      </span>
+                      <span className={entry.user === metrics.user ? 'text-[#3dd98f] font-semibold' : 'text-[#8a8a8d]'}>
+                        {entry.user}{entry.user === metrics.user ? ' (You)' : ''}
+                      </span>
+                    </div>
+                    <span className="text-[#8a8a8d]">{entry.points}</span>
+                  </motion.div>
+                ))}
+                {metrics.leaderboard.length === 0 && (
+                  <p className="text-xs text-[#4a4a4d] p-2">No scores yet. Complete a day to enter the board.</p>
+                )}
+              </div>
             </div>
-            <div className="space-y-2">
-              {metrics.leaderboard.slice(0, 5).map((entry, idx) => (
-                <motion.div 
-                  key={entry.user} 
-                  className="flex items-center justify-between text-sm text-[#c4c4c6] p-2 bg-[#0e0e10] border border-[#1a1a1d]"
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 + idx * 0.05 }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className={`text-[10px] font-semibold w-5 h-5 flex items-center justify-center rounded-full ${
-                      idx === 0 ? 'bg-[#3dd98f] text-black' : 
-                      idx === 1 ? 'bg-[#6a6a6d] text-black' : 
-                      idx === 2 ? 'bg-[#8a6040] text-black' : 
-                      'bg-[#1a1a1d] text-[#4a4a4d]'
-                    }`}>
-                      {idx + 1}
-                    </span>
-                    <span className={entry.user === metrics.user ? 'text-[#3dd98f] font-semibold' : 'text-[#8a8a8d]'}>
-                      {entry.user}{entry.user === metrics.user ? ' (You)' : ''}
-                    </span>
-                  </div>
-                  <span className="text-[#8a8a8d]">{entry.points}</span>
-                </motion.div>
-              ))}
-              {metrics.leaderboard.length === 0 && (
-                <p className="text-xs text-[#4a4a4d] p-2">No scores yet. Complete a day to enter the board.</p>
-              )}
-            </div>
-          </div>
+          )}
         </motion.div>
 
         <motion.div 
