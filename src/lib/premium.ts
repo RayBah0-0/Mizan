@@ -70,25 +70,30 @@ function writePremiumData(data: PremiumStatus, userId?: string): void {
  * Returns: { active: boolean, expiresAt: string | null, activationCode: string | null }
  */
 export function getPremiumStatus(userId?: string): PremiumStatus {
-  const data = readPremiumData(userId);
-  
-  if (!data) {
-    return { active: false, expiresAt: null, activationCode: null };
-  }
-
-  // Auto-expire check
-  if (data.expiresAt) {
-    const expiry = new Date(data.expiresAt);
-    const now = new Date();
+  try {
+    const data = readPremiumData(userId);
     
-    if (now > expiry) {
-      // Expired - clear and return inactive
-      clearPremiumData(userId);
+    if (!data) {
       return { active: false, expiresAt: null, activationCode: null };
     }
-  }
 
-  return data;
+    // Auto-expire check
+    if (data.expiresAt) {
+      const expiry = new Date(data.expiresAt);
+      const now = new Date();
+      
+      if (now > expiry) {
+        // Expired - clear and return inactive
+        clearPremiumData(userId);
+        return { active: false, expiresAt: null, activationCode: null };
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting premium status:', error);
+    return { active: false, expiresAt: null, activationCode: null };
+  }
 }
 
 /**

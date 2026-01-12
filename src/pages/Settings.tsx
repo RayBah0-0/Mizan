@@ -416,7 +416,7 @@ export default function Settings() {
           )}
 
           {/* Quiet Mode - Premium Feature */}
-          {premiumStatus.active && (
+          {premium.active && (
             <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
               <div className="flex items-center justify-between mb-3">
                 <div>

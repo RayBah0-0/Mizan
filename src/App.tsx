@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import Landing from './pages/Landing';
 import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
@@ -11,6 +12,7 @@ import Pricing from './pages/Pricing';
 import ActivatePremium from './pages/ActivatePremium';
 import ThankYou from './pages/ThankYou';
 import RedeemPremium from './pages/RedeemPremium';
+import Cycle from './pages/Cycle';
 import UserNotRegisteredError from './components/UserNotRegisteredError';
 import { useClerkAuth } from './contexts/ClerkAuthContext';
 import { syncFromServer, readCheckins } from './utils/storage';
@@ -52,20 +54,23 @@ export default function App() {
 
   return (
     <Layout>
-      <Routes>
-        <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/checkin" element={<CheckIn />} />
-        <Route path="/status" element={<Status />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/analytics" element={<Analytics />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/activate" element={<ActivatePremium />} />
-        <Route path="/thank-you" element={<ThankYou />} />
-        <Route path="/getpremium-:token" element={<RedeemPremium />} />
-        <Route path="/unauthorized" element={<UserNotRegisteredError />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/checkin" element={<CheckIn />} />
+          <Route path="/cycle" element={<Cycle />} />
+          <Route path="/status" element={<Status />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/activate" element={<ActivatePremium />} />
+          <Route path="/thank-you" element={<ThankYou />} />
+          <Route path="/getpremium-:token" element={<RedeemPremium />} />
+          <Route path="/unauthorized" element={<UserNotRegisteredError />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </ErrorBoundary>
     </Layout>
   );
 }

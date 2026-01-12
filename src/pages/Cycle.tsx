@@ -17,6 +17,7 @@ export default function Cycle() {
   const { cycles, cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const previous = cycles.length > 1 ? cycles[cycles.length - 2] : null;
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);
+  const [hasShownNiyyah, setHasShownNiyyah] = useState(false);
   const currentNiyyah = getCurrentNiyyah();
   
   // Generate reflection for completed previous cycle
@@ -26,10 +27,14 @@ export default function Cycle() {
 
   // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
   useEffect(() => {
-    if (premium.active && currentProgress === 0 && !currentNiyyah) {
-      setShowNiyyahModal(true);
+    if (premium.active && currentProgress === 0 && !currentNiyyah && !hasShownNiyyah) {
+      const timer = setTimeout(() => {
+        setShowNiyyahModal(true);
+        setHasShownNiyyah(true);
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [premium.active, currentProgress, currentNiyyah]);
+  }, [premium.active, currentProgress, currentNiyyah, hasShownNiyyah]);
 
   const handleNiyyahSubmit = (intention: string) => {
     setCurrentNiyyah(intention);
