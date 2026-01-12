@@ -64,6 +64,12 @@ export default function Layout({ children }: LayoutProps) {
                   userPreviewMainIdentifier: 'text-[#c4c4c6]',
                   userPreviewSecondaryIdentifier: 'text-[#8a8a8d]',
                   
+                  // Custom menu items
+                  menuList: 'text-[#c4c4c6]',
+                  menuItem: 'text-[#c4c4c6] hover:bg-[#1a1a1d]',
+                  menuButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d]',
+                  userButtonPopoverActionButtonIconBox: 'text-[#c4c4c6]',
+                  
                   // Modal and card styling
                   card: 'bg-[#0a0a0b] text-[#c4c4c6] border border-[#1a1a1d]',
                   rootBox: 'bg-[#0a0a0b]',
