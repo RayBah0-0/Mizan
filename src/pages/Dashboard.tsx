@@ -14,6 +14,7 @@ import { detectRelapse } from '@/utils/relapseRecovery';
 import { shouldShowGuidedPrompt, GuidedPrompt } from '@/utils/guidedPrompts';
 import RecoveryModal from '@/components/RecoveryModal';
 import GuidedPromptModal from '@/components/GuidedPromptModal';
+import { NiyyahModal } from '@/components/NiyyahModal';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -38,7 +39,7 @@ const AnimatedCounter = ({ value }: { value: number }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useClerkAuth();
-  const { cyclesCompleted, currentProgress } = useCycle();
+  const { cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const [showPremiumActivated, setShowPremiumActivated] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activationCode, setActivationCode] = useState<string | null>(null);
@@ -50,6 +51,9 @@ export default function Dashboard() {
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
   const [guidedPrompt, setGuidedPrompt] = useState<GuidedPrompt | null>(null);
   const [showGuidedPrompt, setShowGuidedPrompt] = useState(false);
+  const [showNiyyahModal, setShowNiyyahModal] = useState(false);
+  const [hasShownNiyyah, setHasShownNiyyah] = useState(false);
+  const currentNiyyah = getCurrentNiyyah();
 
   // Check quiet mode on mount
   useEffect(() => {
@@ -89,6 +93,22 @@ export default function Dashboard() {
   const handleGuidedPromptClose = () => {
     setShowGuidedPrompt(false);
     setGuidedPrompt(null);
+  };
+
+  // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
+  useEffect(() => {
+    if (premium.active && currentProgress === 0 && !currentNiyyah && !hasShownNiyyah) {
+      const timer = setTimeout(() => {
+        setShowNiyyahModal(true);
+        setHasShownNiyyah(true);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [premium.active, currentProgress, currentNiyyah, hasShownNiyyah]);
+
+  const handleNiyyahSubmit = (intention: string) => {
+    setCurrentNiyyah(intention);
+    setShowNiyyahModal(false);
   };
 
   // Check for Stripe redirect and activate premium immediately
@@ -558,6 +578,13 @@ export default function Dashboard() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* Niyyah Modal */}
+      <NiyyahModal 
+        isOpen={showNiyyahModal}
+        onClose={() => setShowNiyyahModal(false)}
+        onSubmit={handleNiyyahSubmit}
+      />
 
       {/* Recovery Modal */}
       <RecoveryModal
