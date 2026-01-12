@@ -27,7 +27,7 @@ export default function Cycle() {
 
   // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
   useEffect(() => {
-    if (premium.active && currentProgress === 0 && !currentNiyyah && !hasShownNiyyah) {
+    if (premium.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownNiyyah) {
       const timer = setTimeout(() => {
         setShowNiyyahModal(true);
         setHasShownNiyyah(true);
