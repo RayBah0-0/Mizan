@@ -117,12 +117,15 @@ export default function Pricing() {
                 <X className="w-5 h-5 text-red-400" />
                 <span className="text-red-400 font-medium">Premium Plan Expired</span>
               </div>
-              <button
+              <motion.button
                 onClick={handleRenewal}
-                className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] text-sm font-medium rounded transition-colors"
+                whileHover={{ scale: 1.05, backgroundColor: '#3d5a4a' }}
+                whileTap={{ scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="px-4 py-2 bg-[#2d4a3a] text-[#0a0a0a] text-sm font-medium rounded transition-colors"
               >
                 Renew Premium
-              </button>
+              </motion.button>
             </div>
           </motion.div>
         )}
@@ -165,12 +168,15 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <button
+            <motion.button
               onClick={() => navigate(createPageUrl('Dashboard'))}
-              className="w-full py-2.5 border border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] hover:border-[#3a3a3d] text-xs tracking-wide transition-all duration-300"
+              whileHover={{ scale: 1.02, borderColor: '#3a3a3d', color: '#c4c4c6' }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.2 }}
+              className="w-full py-2.5 border border-[#2a2a2d] text-[#8a8a8d] text-xs tracking-wide transition-all duration-300"
             >
               Start with Free
-            </button>
+            </motion.button>
           </motion.div>
 
           {/* Yearly Premium */}
@@ -210,24 +216,30 @@ export default function Pricing() {
                 Active Until {premium.expiresAt ? new Date(premium.expiresAt).toLocaleDateString() : 'Lifetime'}
               </div>
             ) : (
-              <button
+              <motion.button
                 onClick={handleUpgrade}
-                className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+                whileHover={{ scale: 1.03, backgroundColor: '#3d5a4a', boxShadow: '0 10px 30px rgba(61,217,143,0.3)' }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+                className="w-full py-2.5 bg-[#2d4a3a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
               >
                 <Zap className="w-4 h-4" />
                 Reflect Intentionally
-              </button>
+              </motion.button>
             )}
 
             {!premium.active && (
               <div className="mt-3">
-                <button
+                <motion.button
                   onClick={() => setShowCodeInput(!showCodeInput)}
-                  className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+                  whileHover={{ scale: 1.02, backgroundColor: '#2a2a2d' }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  className="w-full py-2.5 bg-[#1a1a1d] border border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
                 >
                   <Key className="w-3 h-3" />
                   Already paid? Activate →
-                </button>
+                </motion.button>
 
                 {showCodeInput && (
                   <motion.div
@@ -248,12 +260,15 @@ export default function Pricing() {
                         <p className="text-red-400 text-xs mt-1">{codeError}</p>
                       )}
                     </div>
-                    <button
+                    <motion.button
                       onClick={handleActivateWithCode}
-                      className="w-full py-2 bg-[#3dd98f] hover:bg-[#4eeaa0] text-[#0a0a0a] font-medium text-xs transition-colors"
+                      whileHover={{ scale: 1.05, backgroundColor: '#4eeaa0', boxShadow: '0 8px 25px rgba(61,217,143,0.4)' }}
+                      whileTap={{ scale: 0.95 }}
+                      transition={{ duration: 0.2 }}
+                      className="w-full py-2 bg-[#3dd98f] text-[#0a0a0a] font-medium text-xs transition-colors"
                     >
                       Activate Premium
-                    </button>
+                    </motion.button>
                   </motion.div>
                 )}
               </div>
@@ -284,12 +299,15 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <button
+              <motion.button
                 onClick={() => window.open('https://buy.stripe.com/7sY5kDe0n46ggFD6TjfUQ07', '_blank')}
-                className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
+                whileHover={{ scale: 1.03, backgroundColor: '#2d4a3a', boxShadow: '0 10px 30px rgba(61,217,143,0.3)' }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.2 }}
+                className="w-full py-2.5 bg-[#1a1a1d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
               >
                 Commit for 90 Days
-              </button>
+              </motion.button>
             </motion.div>
           )}
 
@@ -319,12 +337,15 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <button
+            <motion.button
               onClick={() => window.open('https://buy.stripe.com/5kQcN57BZ0U4exv3H7fUQ08', '_blank')}
-              className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300"
+              whileHover={{ scale: 1.03, backgroundColor: '#3d5a4a', boxShadow: '0 15px 40px rgba(61,217,143,0.4)' }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ duration: 0.2 }}
+              className="w-full py-2.5 bg-[#2d4a3a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300"
             >
               This Is Who I Am
-            </button>
+            </motion.button>
           </motion.div>
         </div>
 

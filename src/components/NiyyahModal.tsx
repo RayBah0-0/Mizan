@@ -47,12 +47,15 @@ export function NiyyahModal({ isOpen, onClose, onSubmit }: NiyyahModalProps) {
                   <Heart className="w-5 h-5 text-[#3dd98f]" />
                   <h2 className="text-lg text-[#c4c4c6] font-light tracking-wide">Set Your Niyyah</h2>
                 </div>
-                <button
+                <motion.button
                   onClick={handleSkip}
-                  className="text-[#6a6a6d] hover:text-[#c4c4c6] transition-colors"
+                  whileHover={{ scale: 1.1, color: '#c4c4c6' }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.2 }}
+                  className="text-[#6a6a6d] transition-colors"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </motion.button>
               </div>
 
               <p className="text-sm text-[#8a8a8d] mb-6 leading-relaxed">
@@ -72,19 +75,25 @@ export function NiyyahModal({ isOpen, onClose, onSubmit }: NiyyahModalProps) {
               </p>
 
               <div className="flex gap-3">
-                <button
+                <motion.button
                   onClick={handleSkip}
-                  className="flex-1 px-4 py-3 border border-[#1a1a1d] text-[#8a8a8d] text-sm hover:text-[#c4c4c6] hover:border-[#2a2a2d] transition-colors"
+                  whileHover={{ scale: 1.02, borderColor: '#2a2a2d', color: '#c4c4c6' }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 px-4 py-3 border border-[#1a1a1d] text-[#8a8a8d] text-sm transition-colors"
                 >
                   Skip for now
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={handleSubmit}
                   disabled={!intention.trim()}
-                  className="flex-1 px-4 py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  whileHover={!intention.trim() ? {} : { scale: 1.03, backgroundColor: '#3d5a4a', boxShadow: '0 10px 30px rgba(61,217,143,0.3)' }}
+                  whileTap={!intention.trim() ? {} : { scale: 0.97 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-1 px-4 py-3 bg-[#2d4a3a] text-[#0a0a0a] font-semibold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Set intention
-                </button>
+                </motion.button>
               </div>
 
               <p className="text-xs text-[#4a4a4d] mt-4 text-center">

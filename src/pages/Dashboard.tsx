@@ -245,16 +245,19 @@ export default function Dashboard() {
             className="mb-6 p-4 bg-[#1a1a1d]/50 border border-[#2d4a3a]/40 rounded-lg relative"
           >
             {/* Close button */}
-            <button
+            <motion.button
               onClick={() => {
                 setShowPremiumActivated(false);
                 setActivationCode(null);
                 setCopyStatus('idle');
               }}
-              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-[#6a6a6d] hover:text-[#c4c4c6] hover:bg-[#2a2a2d] rounded transition-colors"
+              whileHover={{ scale: 1.1, backgroundColor: '#2a2a2d' }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className="absolute top-3 right-3 w-6 h-6 flex items-center justify-center text-[#6a6a6d] hover:text-[#c4c4c6] rounded transition-colors"
             >
               ✕
-            </button>
+            </motion.button>
 
             <div className="text-center pr-8">
               <motion.div
@@ -285,9 +288,11 @@ export default function Dashboard() {
                         setCopyStatus('copied');
                         setTimeout(() => setCopyStatus('idle'), 2000);
                       }}
-                      className="px-2 py-1 bg-[#1a1a1d] hover:bg-[#2a2a2d] text-[#c4c4c6] text-xs rounded border border-[#2a2a2d] transition-colors min-w-[60px]"
-                      animate={copyStatus === 'copied' ? { scale: [1, 1.05, 1] } : {}}
-                      transition={{ duration: 0.2 }}
+                      whileHover={{ scale: 1.05, backgroundColor: '#2a2a2d', borderColor: '#3a3a3d' }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-2 py-1 bg-[#1a1a1d] text-[#c4c4c6] text-xs rounded border border-[#2a2a2d] transition-colors min-w-[60px]"
+                      animate={copyStatus === 'copied' ? { scale: [1, 1.1, 1] } : {}}
+                      transition={{ duration: 0.3 }}
                     >
                       <motion.span
                         key={copyStatus}

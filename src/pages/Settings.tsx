@@ -37,10 +37,6 @@ export default function Settings() {
   const [savedMsg, setSavedMsg] = useState('');
   const [confirmReset, setConfirmReset] = useState(false);
   const [resetStage, setResetStage] = useState(0); // 0: none, 1: confirm, 2: final
-  const [accessCode, setAccessCode] = useState('');
-  const [accessCodeError, setAccessCodeError] = useState('');
-  const [currentAccessCode, setCurrentAccessCode] = useState<string | null>(null);
-  const [isLoadingCode, setIsLoadingCode] = useState(false);
   const [notificationsEnabled, setNotificationsEnabledState] = useState(false);
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
   const [notificationTimes, setNotificationTimes] = useState<string[]>(['20:00', '14:00', '08:00']);
@@ -78,12 +74,6 @@ export default function Settings() {
     if (savedCycleEnd !== null) setNotifyCycleEnd(savedCycleEnd === 'true');
     if (savedRemindersPerDay) setRemindersPerDay(parseInt(savedRemindersPerDay));
     
-    // Load access code from localStorage
-    if (user) {
-      const savedAccessCode = localStorage.getItem(`mizan_access_code_${user.id}`);
-      if (savedAccessCode) setCurrentAccessCode(savedAccessCode);
-    }
-    
     // Load Quiet Mode (premium feature)
     const savedQuietMode = localStorage.getItem('mizan_quiet_mode');
     if (savedQuietMode !== null) setQuietMode(savedQuietMode === 'true');
@@ -115,25 +105,6 @@ export default function Settings() {
       migrateOldPremiumData(user.id);
     }
   }, [user?.id]);
-
-  const validateAccessCode = (code: string): string | null => {
-    if (!code) return null;
-    if (code.length < 5) return 'Access code must be at least 5 characters';
-    if (!/[a-zA-Z]/.test(code)) return 'Must include at least one letter';
-    if (!/[0-9]/.test(code)) return 'Must include at least one number';
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(code)) return 'Must include at least one special character';
-    return null;
-  };
-
-  const handleAccessCodeChange = (value: string) => {
-    setAccessCode(value);
-    if (value) {
-      const error = validateAccessCode(value);
-      setAccessCodeError(error || '');
-    } else {
-      setAccessCodeError('');
-    }
-  };
 
   const handleUsernameSave = async () => {
     const trimmed = username.trim();
@@ -193,38 +164,6 @@ export default function Settings() {
     } catch (error: any) {
       console.error('Error saving username:', error);
       setUsernameError(error.message || 'Failed to update username. Please try again.');
-    }
-  };
-
-  const handleSetAccessCode = async () => {
-    if (!accessCode.trim()) {
-      setSavedMsg('Please enter an access code');
-      setTimeout(() => setSavedMsg(''), 2000);
-      return;
-    }
-
-    const validationError = validateAccessCode(accessCode.trim());
-    if (validationError) {
-      setSavedMsg(validationError);
-      setTimeout(() => setSavedMsg(''), 3000);
-      return;
-    }
-
-    setIsLoadingCode(true);
-    try {
-      // Store access code locally (backend removed)
-      const storageKey = `mizan_access_code_${user?.id}`;
-      localStorage.setItem(storageKey, accessCode.trim());
-      setCurrentAccessCode(accessCode.trim());
-      setSavedMsg('Access code saved! Use it to login on other devices.');
-
-      setAccessCode('');
-      setTimeout(() => setSavedMsg(''), 3000);
-    } catch (err: any) {
-      setSavedMsg(err.message || 'Failed to set access code');
-      setTimeout(() => setSavedMsg(''), 3000);
-    } finally {
-      setIsLoadingCode(false);
     }
   };
 
@@ -336,17 +275,20 @@ export default function Settings() {
                 <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Account</h2>
                 <div className="space-y-3">
                   <p className="text-[#5a5a5d] text-sm">Logged in as <span className="text-[#8a8a8d]">{user.email}</span></p>
-                  <button
+                  <motion.button
                     type="button"
                     onClick={() => {
                       signOut();
                       navigate(createPageUrl('Access'));
                     }}
-                    className="flex items-center gap-2 text-[#6a6a6d] hover:text-[#c4c4c6] text-sm transition-colors"
+                    whileHover={{ scale: 1.05, color: '#ff6b6b' }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="flex items-center gap-2 text-[#6a6a6d] text-sm transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
-                  </button>
+                  </motion.button>
                 </div>
               </section>
 
@@ -364,13 +306,15 @@ export default function Settings() {
                       placeholder={user?.username || "Your username"}
                       maxLength={20}
                     />
-                    <button
+                    <motion.button
                       type="button"
                       onClick={handleUsernameSave}
-                      className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm tracking-wide transition-all duration-300"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-medium text-sm tracking-wide transition-all duration-300"
                     >
                       Update
-                    </button>
+                    </motion.button>
                   </div>
                   {usernameError ? (
                     <p className="text-red-400 text-xs">{usernameError}</p>
@@ -378,71 +322,6 @@ export default function Settings() {
                     <p className="text-[#3a3a3d] text-xs">3-20 characters, letters/numbers/underscores only</p>
                   )}
                 </div>
-              </section>
-
-              <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
-                <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Access Code</h2>
-                {currentAccessCode ? (
-                  <div className="space-y-3">
-                    <p className="text-[#5a5a5d] text-sm">Current code: <span className="text-[#8a8a8d] font-mono">{currentAccessCode}</span></p>
-                    <p className="text-[#4a4a4d] text-xs">Use this code to quickly login on other devices</p>
-                    <div className="pt-2 border-t border-[#1a1a1d]">
-                      <p className="text-[#4a4a4d] text-xs mb-2">Change access code:</p>
-                      <div className="space-y-2">
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={accessCode}
-                            onChange={(e) => handleAccessCodeChange(e.target.value)}
-                            className={`flex-1 bg-[#0e0e10] border ${accessCodeError ? 'border-red-500' : 'border-[#1a1a1d]'} focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300 placeholder:text-[#3a3a3d]`}
-                            placeholder="new-access-code"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSetAccessCode}
-                          disabled={isLoadingCode}
-                          className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm tracking-wide transition-all duration-300 disabled:opacity-50"
-                        >
-                          {isLoadingCode ? 'Saving...' : 'Update'}
-                        </button>
-                        </div>
-                        {accessCodeError ? (
-                          <p className="text-red-400 text-xs">{accessCodeError}</p>
-                        ) : (
-                          <p className="text-[#3a3a3d] text-xs">Must include: letter, number, special character, 5+ chars</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <p className="text-[#4a4a4d] text-xs mb-3">Create an access code for quick login on other devices</p>
-                    <div className="space-y-2">
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={accessCode}
-                          onChange={(e) => handleAccessCodeChange(e.target.value)}
-                          className={`flex-1 bg-[#0e0e10] border ${accessCodeError ? 'border-red-500' : 'border-[#1a1a1d]'} focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300 placeholder:text-[#3a3a3d]`}
-                          placeholder="e.g., Ali@2026"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleSetAccessCode}
-                          disabled={isLoadingCode}
-                          className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm tracking-wide transition-all duration-300 disabled:opacity-50"
-                        >
-                          {isLoadingCode ? 'Saving...' : 'Create'}
-                        </button>
-                      </div>
-                      {accessCodeError ? (
-                        <p className="text-red-400 text-xs">{accessCodeError}</p>
-                      ) : (
-                        <p className="text-[#3a3a3d] text-xs">Must include: letter, number, special character, 5+ chars</p>
-                      )}
-                    </div>
-                  </div>
-                )}
               </section>
             </>
           )}
@@ -453,15 +332,18 @@ export default function Settings() {
               <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Premium Key</h2>
               <div className="space-y-3">
                 <p className="text-[#4a4a4d] text-xs mb-3">Your activation code for backup reactivation</p>
-                <button
+                <motion.button
                   onClick={() => setShowPremiumKey(!showPremiumKey)}
-                  className="flex items-center gap-2 text-[#6a6a6d] hover:text-[#c4c4c6] text-sm transition-colors"
+                  whileHover={{ scale: 1.05, color: '#c4c4c6' }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex items-center gap-2 text-[#6a6a6d] text-sm transition-colors"
                 >
                   <span className="w-4 h-4 border border-current rounded flex items-center justify-center text-xs">
                     {showPremiumKey ? '−' : '+'}
                   </span>
                   {showPremiumKey ? 'Hide Key' : 'Show Key'}
-                </button>
+                </motion.button>
                 {showPremiumKey && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -479,9 +361,11 @@ export default function Settings() {
                           setPremiumKeyCopyStatus('copied');
                           setTimeout(() => setPremiumKeyCopyStatus('idle'), 2000);
                         }}
-                        className="px-3 py-1 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] text-sm rounded transition-colors min-w-[60px]"
-                        animate={premiumKeyCopyStatus === 'copied' ? { scale: [1, 1.05, 1] } : {}}
-                        transition={{ duration: 0.2 }}
+                        whileHover={{ scale: 1.05, backgroundColor: '#3d5a4a' }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-3 py-1 bg-[#2d4a3a] text-[#0a0a0a] text-sm rounded transition-colors min-w-[60px]"
+                        animate={premiumKeyCopyStatus === 'copied' ? { scale: [1, 1.1, 1] } : {}}
+                        transition={{ duration: 0.3 }}
                       >
                         <motion.span
                           key={premiumKeyCopyStatus}
@@ -496,7 +380,7 @@ export default function Settings() {
                     </div>
                     <p className="text-[#4a4a4d] text-xs mt-2">Use this code to reactivate premium on another device or after data reset.</p>
                     <div className="mt-3 pt-3 border-t border-[#1a1a1d]">
-                      <button
+                      <motion.button
                         onClick={() => {
                           clearPremiumData(user?.id);
                           setSavedMsg('Premium data cleared for current user');
@@ -504,10 +388,13 @@ export default function Settings() {
                           // Refresh the page to update the UI
                           window.location.reload();
                         }}
-                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition-colors"
+                        whileHover={{ scale: 1.05, backgroundColor: '#dc2626' }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
+                        className="px-3 py-1 bg-red-600 text-white text-xs rounded transition-colors"
                       >
                         Clear Premium Data
-                      </button>
+                      </motion.button>
                     </div>
                   </motion.div>
                 )}
@@ -550,15 +437,18 @@ export default function Settings() {
                 { key: 'default', label: 'Default' },
                 { key: 'red', label: 'Red' }
               ].map((opt) => (
-                <button
+                <motion.button
                   key={opt.key}
                   onClick={() => handleThemeChange(opt.key)}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
                   className={`px-4 py-3 border text-sm tracking-wide transition-all duration-300 ${
                     theme === opt.key ? 'border-[#2d4a3a] text-[#c4c4c6] bg-[#0e0e10]' : 'border-[#1a1a1d] text-[#8a8a8d] hover:border-[#2a2a2d]'
                   }`}
                 >
                   {opt.label}
-                </button>
+                </motion.button>
               ))}
             </div>
 
@@ -571,13 +461,16 @@ export default function Settings() {
                   className="flex-1 bg-[#0e0e10] border border-[#1a1a1d] focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300"
                   placeholder="Consistency is earned."
                 />
-                <button
+                <motion.button
                   type="button"
                   onClick={handleFocusPhraseSave}
-                  className="px-3 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide"
+                  whileHover={{ scale: 1.05, backgroundColor: '#3d5a4a' }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="px-3 py-2 bg-[#2d4a3a] text-[#0a0a0a] font-semibold text-xs tracking-wide"
                 >
                   Save
-                </button>
+                </motion.button>
               </div>
             </div>
 
@@ -590,13 +483,16 @@ export default function Settings() {
                   className="flex-1 bg-[#0e0e10] border border-[#1a1a1d] focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300"
                   placeholder="focus, calm, gratitude"
                 />
-                <button
+                <motion.button
                   type="button"
                   onClick={handleCustomCategoriesSave}
-                  className="px-3 py-2 border border-[#2d4a3a] text-[#c4c4c6] hover:text-white text-xs tracking-wide"
+                  whileHover={{ scale: 1.05, color: '#ffffff' }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className="px-3 py-2 border border-[#2d4a3a] text-[#c4c4c6] text-xs tracking-wide"
                 >
                   Save
-                </button>
+                </motion.button>
               </div>
               <p className="text-[#4a4a4d] text-xs">Stored in your settings; wire into check-ins later.</p>
             </div>
@@ -628,7 +524,7 @@ export default function Settings() {
                   <label className="text-[#8a8a8d] text-xs tracking-wide">Daily reminders</label>
                   <div className="flex gap-2">
                     {[1, 2, 3].map((num) => (
-                      <button
+                      <motion.button
                         key={num}
                         type="button"
                         onClick={() => {
@@ -637,6 +533,9 @@ export default function Settings() {
                           setSavedMsg(`${num} reminder${num > 1 ? 's' : ''} per day set.`);
                           setTimeout(() => setSavedMsg(''), 2000);
                         }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        transition={{ duration: 0.2 }}
                         className={`flex-1 px-3 py-2 text-xs tracking-wide transition-all duration-300 ${
                           remindersPerDay === num
                             ? 'bg-[#2d4a3a] border-[#2d4a3a] text-[#0a0a0a] font-semibold'
@@ -644,7 +543,7 @@ export default function Settings() {
                         } border`}
                       >
                         {num}x
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                   <p className="text-[#4a4a4d] text-xs">Number of reminders per day</p>
@@ -722,7 +621,9 @@ export default function Settings() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+                  whileHover={{ scale: 1.02, backgroundColor: '#8a2a2d', borderColor: '#b43a3d' }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
                   className="w-full py-3 border border-[#2a2a2d] text-[#6a6a6d] hover:text-[#c4c4c6] bg-[#0a0a0b] text-sm tracking-[0.15em] uppercase transition-all duration-300 hover:border-[#3a3a3d]"
                 >
                   Reset everything
