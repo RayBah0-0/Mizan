@@ -108,11 +108,6 @@ export default function Layout({ children }: LayoutProps) {
               }}
             >
               <UserButton.MenuItems>
-                <UserButton.Action
-                  label="Manage account"
-                  labelIcon={<span>👤</span>}
-                  open="managePicture"
-                />
                 <UserButton.Link
                   label="Settings"
                   labelIcon={<span>⚙️</span>}
