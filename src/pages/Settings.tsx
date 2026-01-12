@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Bell, BellOff } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
-import { clearAll } from '@/utils/storage';
+import { clearAll, readUser, writeUser } from '@/utils/storage';
 import { readSettings, writeSettings } from '@/utils/storage';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 // Backend API no longer used - premium is localStorage-based
@@ -54,6 +54,8 @@ export default function Settings() {
   const [showPremiumKey, setShowPremiumKey] = useState(false);
   const [premiumKeyCopyStatus, setPremiumKeyCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [quietMode, setQuietMode] = useState(false);
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
   const navigate = useNavigate();
   const { user, signOut } = useClerkAuth();
 
@@ -85,6 +87,10 @@ export default function Settings() {
     // Load Quiet Mode (premium feature)
     const savedQuietMode = localStorage.getItem('mizan_quiet_mode');
     if (savedQuietMode !== null) setQuietMode(savedQuietMode === 'true');
+    
+    // Load username
+    const savedUsername = readUser();
+    if (savedUsername) setUsername(savedUsername);
     
     // Load settings (theme, focus, feature flags)
     const s = readSettings();
@@ -124,6 +130,35 @@ export default function Settings() {
     } else {
       setAccessCodeError('');
     }
+  };
+
+  const handleUsernameSave = () => {
+    const trimmed = username.trim();
+    
+    if (!trimmed) {
+      setUsernameError('Username cannot be empty');
+      return;
+    }
+    
+    if (trimmed.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
+      return;
+    }
+    
+    if (trimmed.length > 20) {
+      setUsernameError('Username must be less than 20 characters');
+      return;
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(trimmed)) {
+      setUsernameError('Username can only contain letters, numbers, and underscores');
+      return;
+    }
+    
+    writeUser(trimmed);
+    setUsernameError('');
+    setSavedMsg('Username saved!');
+    setTimeout(() => setSavedMsg(''), 3000);
   };
 
   const handleSetAccessCode = async () => {
@@ -277,6 +312,36 @@ export default function Settings() {
                     <LogOut className="w-4 h-4" />
                     Logout
                   </button>
+                </div>
+              </section>
+
+              <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
+                <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Username</h2>
+                <p className="text-[#4a4a4d] text-xs mb-3">This is how you'll appear on the leaderboard</p>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleUsernameSave()}
+                      className={`flex-1 bg-[#0e0e10] border ${usernameError ? 'border-red-500' : 'border-[#1a1a1d]'} focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300 placeholder:text-[#3a3a3d]`}
+                      placeholder="Choose username"
+                      maxLength={20}
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUsernameSave}
+                      className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm tracking-wide transition-all duration-300"
+                    >
+                      Save
+                    </button>
+                  </div>
+                  {usernameError ? (
+                    <p className="text-red-400 text-xs">{usernameError}</p>
+                  ) : (
+                    <p className="text-[#3a3a3d] text-xs">3-20 characters, letters/numbers/underscores only</p>
+                  )}
                 </div>
               </section>
 
