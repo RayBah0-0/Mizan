@@ -18,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
           <nav className="flex items-center gap-2 md:gap-3 pointer-events-auto overflow-x-auto">
             <HeaderNavLink to={createPageUrl('Landing')} label="Mizan" />
             <HeaderNavLink to={createPageUrl('CheckIn')} label="Daily" />
+            <HeaderNavLink to={createPageUrl('Cycle')} label="Cycle" />
             <HeaderNavLink to={createPageUrl('Status')} label="Status" />
             <HeaderNavLink to={createPageUrl('Analytics')} label="Analytics" />
             <HeaderNavLink to={createPageUrl('Pricing')} label="Premium" />

@@ -180,9 +180,15 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="p-6 border-2 border-[#2d4a3a] bg-[#0a0a0b] relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 bg-[#2d4a3a] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
-              POPULAR
-            </div>
+            {premium.active ? (
+              <div className="absolute top-0 right-0 bg-[#3dd98f] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
+                CURRENT PLAN
+              </div>
+            ) : (
+              <div className="absolute top-0 right-0 bg-[#2d4a3a] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
+                POPULAR
+              </div>
+            )}
             <div className="flex items-center gap-3 mb-4 mt-2">
               <Crown className="w-5 h-5 text-[#3dd98f]" />
               <h2 className="text-xl font-light">Monthly</h2>
@@ -199,13 +205,19 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            <button
-              onClick={handleUpgrade}
-              className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
-            >
-              <Zap className="w-4 h-4" />
-              Reflect Intentionally
-            </button>
+            {premium.active ? (
+              <div className="w-full py-2.5 bg-[#0e0e10] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide text-center">
+                Active Until {premium.expiresAt ? new Date(premium.expiresAt).toLocaleDateString() : 'Lifetime'}
+              </div>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+              >
+                <Zap className="w-4 h-4" />
+                Reflect Intentionally
+              </button>
+            )}
 
             {!premium.active && (
               <div className="mt-3">
@@ -229,7 +241,7 @@ export default function Pricing() {
                         type="text"
                         value={activationCode}
                         onChange={(e) => setActivationCode(e.target.value)}
-                        placeholder="Enter code"
+                        placeholder="Enter code (e.g., PREMIUM2025)"
                         className="w-full px-3 py-2 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] text-xs placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
                       />
                       {codeError && (
@@ -248,36 +260,38 @@ export default function Pricing() {
             )}
           </motion.div>
 
-          {/* Commitment Pass (3 months) */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="p-6 border border-[#2d4a3a]/50 bg-[#0a0a0b] hover:border-[#2d4a3a] transition-all duration-300"
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <Clock className="w-5 h-5 text-[#3dd98f]" />
-              <h2 className="text-xl font-light">Commitment Pass</h2>
-            </div>
-            <div className="mb-6">
-              <span className="text-3xl font-light">$9</span>
-              <span className="text-[#6a6a6d] text-xs ml-2">/3 months</span>
-            </div>
-            <ul className="space-y-2 mb-8 min-h-[200px]">
-              {features.commitment.map((feature, i) => (
-                <li key={i} className="flex items-start gap-2 text-xs">
-                  <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
-                  <span className="text-[#c4c4c6]">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => window.open('https://buy.stripe.com/test_commitment_3mo', '_blank')}
-              className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
+          {/* Commitment Pass (3 months) - Hidden when premium active */}
+          {!premium.active && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              className="p-6 border border-[#2d4a3a]/50 bg-[#0a0a0b] hover:border-[#2d4a3a] transition-all duration-300"
             >
-              Commit for 90 Days
-            </button>
-          </motion.div>
+              <div className="flex items-center gap-3 mb-4">
+                <Clock className="w-5 h-5 text-[#3dd98f]" />
+                <h2 className="text-xl font-light">Commitment Pass</h2>
+              </div>
+              <div className="mb-6">
+                <span className="text-3xl font-light">$9</span>
+                <span className="text-[#6a6a6d] text-xs ml-2">/3 months</span>
+              </div>
+              <ul className="space-y-2 mb-8 min-h-[200px]">
+                {features.commitment.map((feature, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs">
+                    <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
+                    <span className="text-[#c4c4c6]">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => window.open('https://buy.stripe.com/test_commitment_3mo', '_blank')}
+                className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
+              >
+                Commit for 90 Days
+              </button>
+            </motion.div>
+          )}
 
           {/* Lifetime Access */}
           <motion.div

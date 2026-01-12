@@ -120,10 +120,28 @@ export function activatePremium(userId?: string): string {
  * Returns: true if code matched and activated, false otherwise
  */
 export function activateWithCode(inputCode: string, userId?: string): boolean {
+  // Valid preset codes
+  const validCodes = ['PREMIUM2025', 'LIFETIME2025'];
+  const normalizedInput = inputCode.toUpperCase().trim();
+  
+  // Check if it's a valid preset code
+  if (validCodes.includes(normalizedInput)) {
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    
+    writePremiumData({
+      active: true,
+      expiresAt: oneYearFromNow.toISOString(),
+      activationCode: normalizedInput,
+    }, userId);
+    
+    return true;
+  }
+  
   const currentData = readPremiumData(userId);
   
   // If user already has premium with matching code, ensure it's active
-  if (currentData?.activationCode === inputCode) {
+  if (currentData?.activationCode === normalizedInput) {
     // Reactivate for another year
     const oneYearFromNow = new Date();
     oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);

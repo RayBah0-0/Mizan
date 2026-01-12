@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TrendingUp, Calendar, Target, Lock, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,8 +10,8 @@ import { generateWeeklyTrends, generateMonthlyTrends, analyzePrayerTrends, calcu
 
 export default function Analytics() {
   const { user } = useClerkAuth();
-  const premium = getPremiumStatus(user?.id);
   const navigate = useNavigate();
+  const [premiumStatus, setPremiumStatus] = useState({ active: false, expiresAt: null, activationCode: null });
   
   // Calculate basic stats for preview
   const checkins = readCheckins();
@@ -20,14 +20,21 @@ export default function Analytics() {
   const totalDays = entries.length;
   const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
 
+  // Check premium status
+  useEffect(() => {
+    if (user?.id) {
+      setPremiumStatus(getPremiumStatus(user.id));
+    }
+  }, [user?.id]);
+
   // Premium visual progress data
-  const weeklyTrends = premium.active ? generateWeeklyTrends() : [];
-  const monthlyTrends = premium.active ? generateMonthlyTrends() : [];
-  const prayerTrends = premium.active ? analyzePrayerTrends() : [];
-  const cycleConsistency = premium.active ? calculateCycleConsistency() : null;
+  const weeklyTrends = premiumStatus.active ? generateWeeklyTrends() : [];
+  const monthlyTrends = premiumStatus.active ? generateMonthlyTrends() : [];
+  const prayerTrends = premiumStatus.active ? analyzePrayerTrends() : [];
+  const cycleConsistency = premiumStatus.active ? calculateCycleConsistency() : null;
 
   const exportCsv = () => {
-    if (!premium.active) {
+    if (!premiumStatus.active) {
       // Free users: only last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -129,7 +136,7 @@ export default function Analytics() {
         </motion.div>
 
         {/* Premium Visual Progress */}
-        {premium.active && (
+        {premiumStatus.active && (
           <>
             {/* Weekly Trends */}
             <motion.div
@@ -275,7 +282,7 @@ export default function Analytics() {
         )}
 
         {/* Free User Locked Visual Progress */}
-        {!premium.active && (
+        {!premiumStatus.active && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -325,7 +332,7 @@ export default function Analytics() {
               onClick={exportCsv}
               className="px-4 py-2 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide"
             >
-              {premium.active ? 'Export Full History (CSV)' : 'Export Last 30 Days (CSV)'}
+              {premiumStatus.active ? 'Export Full History (CSV)' : 'Export Last 30 Days (CSV)'}
             </button>
             <button
               onClick={exportNotion}
