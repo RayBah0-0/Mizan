@@ -49,23 +49,62 @@ export default function Layout({ children }: LayoutProps) {
                   fontSize: '0.875rem'
                 },
                 elements: {
+                  // Avatar styling
                   userButtonAvatarBox: 'w-8 h-8 border border-[#1a1a1d]',
+                  avatarBox: 'border border-[#1a1a1d]',
+                  avatarImage: 'rounded-full',
+                  
+                  // Popover styling
                   userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d] shadow-xl',
                   userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d] bg-transparent',
                   userButtonPopoverActionButtonText: 'text-[#c4c4c6]',
                   userButtonPopoverActionButtonIcon: 'text-[#8a8a8d]',
                   userButtonPopoverFooter: 'hidden',
-                  card: 'bg-[#0a0a0b] text-[#c4c4c6]',
-                  rootBox: 'bg-[#0a0a0b]',
-                  userPreviewMainIdentifier: 'text-[#c4c4c6]',
-                  userPreviewSecondaryIdentifier: 'text-[#8a8a8d]',
                   userButtonPopoverMain: 'bg-[#0a0a0b]',
                   userButtonPopoverActions: 'bg-[#0a0a0b]',
-                  avatarBox: 'border border-[#1a1a1d]',
-                  badge: 'bg-[#2d4a3a] text-[#c4c4c6]',
+                  userPreviewMainIdentifier: 'text-[#c4c4c6]',
+                  userPreviewSecondaryIdentifier: 'text-[#8a8a8d]',
+                  
+                  // Modal and card styling
+                  card: 'bg-[#0a0a0b] text-[#c4c4c6] border border-[#1a1a1d]',
+                  rootBox: 'bg-[#0a0a0b]',
+                  modalContent: 'bg-[#0a0a0b] text-[#c4c4c6] border border-[#1a1a1d]',
+                  modalCloseButton: 'text-[#8a8a8d] hover:text-[#c4c4c6]',
+                  modalBackdrop: 'bg-black/80',
+                  
+                  // Form elements
+                  formFieldInput: 'bg-[#0e0e10] border-[#1a1a1d] text-[#c4c4c6] focus:border-[#2d4a3a]',
+                  formFieldLabel: 'text-[#8a8a8d]',
+                  formFieldInputShowPasswordButton: 'text-[#8a8a8d] hover:text-[#c4c4c6]',
                   formButtonPrimary: 'bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a]',
-                  modalContent: 'bg-[#0a0a0b] text-[#c4c4c6]',
-                  modalCloseButton: 'text-[#8a8a8d] hover:text-[#c4c4c6]'
+                  formButtonReset: 'text-[#8a8a8d] hover:text-[#c4c4c6]',
+                  
+                  // Profile page styling
+                  profileSection: 'bg-[#0a0a0b] border border-[#1a1a1d]',
+                  profileSectionTitle: 'text-[#c4c4c6]',
+                  profileSectionTitleText: 'text-[#c4c4c6]',
+                  profileSectionContent: 'bg-[#0a0a0b] text-[#c4c4c6]',
+                  profileSectionPrimaryButton: 'bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a]',
+                  
+                  // Badge and misc
+                  badge: 'bg-[#2d4a3a] text-[#c4c4c6]',
+                  navbar: 'bg-[#0a0a0b] border-b border-[#1a1a1d]',
+                  navbarButton: 'text-[#8a8a8d] hover:text-[#c4c4c6]',
+                  headerTitle: 'text-[#c4c4c6]',
+                  headerSubtitle: 'text-[#8a8a8d]',
+                  
+                  // Page and scrollbox
+                  page: 'bg-[#0a0a0b]',
+                  pageScrollBox: 'bg-[#0a0a0b]',
+                  
+                  // Footer
+                  footer: 'bg-[#0a0a0b] border-t border-[#1a1a1d]',
+                  footerAction: 'text-[#8a8a8d] hover:text-[#c4c4c6]',
+                  footerActionLink: 'text-[#2d4a3a] hover:text-[#3d5a4a]',
+                  
+                  // Dividers and separators
+                  dividerLine: 'bg-[#1a1a1d]',
+                  dividerText: 'text-[#8a8a8d]'
                 }
               }}
             />
