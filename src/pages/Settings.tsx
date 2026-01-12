@@ -88,9 +88,12 @@ export default function Settings() {
     const savedQuietMode = localStorage.getItem('mizan_quiet_mode');
     if (savedQuietMode !== null) setQuietMode(savedQuietMode === 'true');
     
-    // Load username
-    const savedUsername = readUser();
-    if (savedUsername) setUsername(savedUsername);
+    // Load username from Clerk
+    if (user?.username) {
+      setUsername(user.username);
+      // Also save to localStorage as cache for leaderboard
+      writeUser(user.username);
+    }
     
     // Load settings (theme, focus, feature flags)
     const s = readSettings();
@@ -156,7 +159,7 @@ export default function Settings() {
     }
     
     try {
-      // Check if username is already taken
+      // Check if username is already taken via Clerk
       const checkResponse = await fetch('/api/check-username', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -173,29 +176,23 @@ export default function Settings() {
         return;
       }
       
-      // Update Clerk username via public_metadata (syncs across devices)
+      // Update Clerk username directly (not metadata)
       const { user: clerkUser } = await import('@clerk/clerk-react').then(m => ({ user: (window as any).Clerk?.user }));
       
       if (clerkUser) {
         await clerkUser.update({
-          unsafeMetadata: {
-            ...clerkUser.unsafeMetadata,
-            displayName: trimmed
-          }
+          username: trimmed
         });
       }
       
-      // Also save to localStorage as fallback/cache
+      // Save to localStorage for leaderboard
       writeUser(trimmed);
       setUsernameError('');
-      setSavedMsg('Username saved and synced!');
+      setSavedMsg('Username updated successfully!');
       setTimeout(() => setSavedMsg(''), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving username:', error);
-      // Still save locally if Clerk fails
-      writeUser(trimmed);
-      setSavedMsg('Username saved locally');
-      setTimeout(() => setSavedMsg(''), 3000);
+      setUsernameError(error.message || 'Failed to update username. Please try again.');
     }
   };
 
@@ -355,7 +352,7 @@ export default function Settings() {
 
               <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
                 <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Username</h2>
-                <p className="text-[#4a4a4d] text-xs mb-3">This is how you'll appear on the leaderboard</p>
+                <p className="text-[#4a4a4d] text-xs mb-3">This is how you appear on the leaderboard (set during signup)</p>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input
@@ -364,7 +361,7 @@ export default function Settings() {
                       onChange={(e) => setUsername(e.target.value)}
                       onKeyPress={(e) => e.key === 'Enter' && handleUsernameSave()}
                       className={`flex-1 bg-[#0e0e10] border ${usernameError ? 'border-red-500' : 'border-[#1a1a1d]'} focus:border-[#2d4a3a] text-[#c4c4c6] px-4 py-2 text-sm tracking-wide outline-none transition-all duration-300 placeholder:text-[#3a3a3d]`}
-                      placeholder="Choose username"
+                      placeholder={user?.username || "Your username"}
                       maxLength={20}
                     />
                     <button
@@ -372,7 +369,7 @@ export default function Settings() {
                       onClick={handleUsernameSave}
                       className="px-4 py-2 bg-[#0e0e10] border border-[#1a1a1d] hover:border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] text-sm tracking-wide transition-all duration-300"
                     >
-                      Save
+                      Update
                     </button>
                   </div>
                   {usernameError ? (

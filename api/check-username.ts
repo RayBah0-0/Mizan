@@ -30,10 +30,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const users = await response.json();
     
-    // Check if any user (excluding current user) has this displayName
+    // Check if any user (excluding current user) has this username
     const isTaken = users.some((user: any) => 
       user.id !== currentUserId && 
-      user.unsafe_metadata?.displayName?.toLowerCase() === username.toLowerCase()
+      user.username?.toLowerCase() === username.toLowerCase()
     );
 
     return res.status(200).json({ 
