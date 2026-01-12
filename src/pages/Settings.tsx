@@ -156,6 +156,23 @@ export default function Settings() {
     }
     
     try {
+      // Check if username is already taken
+      const checkResponse = await fetch('/api/check-username', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username: trimmed,
+          currentUserId: user?.id 
+        })
+      });
+      
+      const checkData = await checkResponse.json();
+      
+      if (!checkData.available) {
+        setUsernameError('Username is already taken. Please choose another.');
+        return;
+      }
+      
       // Update Clerk username via public_metadata (syncs across devices)
       const { user: clerkUser } = await import('@clerk/clerk-react').then(m => ({ user: (window as any).Clerk?.user }));
       
