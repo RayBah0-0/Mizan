@@ -22,7 +22,6 @@ export default function Layout({ children }: LayoutProps) {
             <HeaderNavLink to={createPageUrl('Status')} label="Status" />
             <HeaderNavLink to={createPageUrl('Analytics')} label="Analytics" />
             <HeaderNavLink to={createPageUrl('Pricing')} label="Premium" />
-            <HeaderNavLink to={createPageUrl('Settings')} label="Settings" />
           </nav>
           <div className="pointer-events-auto absolute right-4 md:right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
             <div className="hidden md:block">
@@ -107,7 +106,15 @@ export default function Layout({ children }: LayoutProps) {
                   dividerText: 'text-[#8a8a8d]'
                 }
               }}
-            />
+            >
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Settings"
+                  labelIcon={<span>⚙️</span>}
+                  href={createPageUrl('Settings')}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
           </div>
         </header>
       )}
