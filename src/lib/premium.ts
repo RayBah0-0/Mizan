@@ -112,7 +112,7 @@ export function getPremiumStatus(userId?: string): PremiumStatus {
  * Called by: Stripe success, manual code entry, redeem URL
  * Returns: activation code for backup
  */
-export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly', forceNewCode: boolean = false): string {
+export async function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly', forceNewCode: boolean = false): Promise<string> {
   let expiresAt: string | null;
   
   if (plan === 'lifetime') {
@@ -139,6 +139,23 @@ export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' 
   };
 
   writePremiumData(premiumData, userId);
+
+  // Store activation code in database for cross-device access
+  try {
+    const token = localStorage.getItem('clerk_token');
+    if (token) {
+      await fetch('/api/data/activation-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ code, plan, expiresAt })
+      });
+    }
+  } catch (error) {
+    console.error('Failed to store activation code in database:', error);
+  }
   
   return code;
 }
@@ -147,7 +164,7 @@ export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' 
  * Validate and activate with backup code
  * Returns: true if code matched and activated, false otherwise
  */
-export function activateWithCode(inputCode: string, userId?: string): boolean {
+export async function activateWithCode(inputCode: string, userId?: string): Promise<boolean> {
   // Valid preset codes
   const validCodes = ['PREMIUM2025', 'LIFETIME2025'];
   const normalizedInput = inputCode.toUpperCase().trim();
@@ -164,6 +181,35 @@ export function activateWithCode(inputCode: string, userId?: string): boolean {
     }, userId);
     
     return true;
+  }
+
+  // Check database for cross-device activation code
+  try {
+    const token = localStorage.getItem('clerk_token');
+    if (token) {
+      const response = await fetch('/api/data/validate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ code: normalizedInput })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.valid) {
+          writePremiumData({
+            active: true,
+            expiresAt: data.expiresAt,
+            activationCode: normalizedInput,
+          }, userId);
+          return true;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Failed to validate code with database:', error);
   }
   
   const currentData = readPremiumData(userId);

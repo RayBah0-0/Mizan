@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Crown, Check, AlertCircle } from 'lucide-react';
-import { activatePremium } from '@/utils/subscription';
+import { activateWithCode } from '@/lib/premium';
 import { createPageUrl } from '@/utils/urls';
 
 export default function ActivatePremium() {
@@ -22,14 +22,17 @@ export default function ActivatePremium() {
     setError('');
 
     try {
-      // In production, verify code with Stripe webhook or backend validation
-      const userId = JSON.parse(localStorage.getItem('mizan_user') || '{}').id;
-      await activatePremium(userId);
+      const userId = JSON.parse(localStorage.getItem('mizan_v1_user') || '""');
+      const activated = await activateWithCode(activationCode, userId);
       
-      setSuccess(true);
-      setTimeout(() => {
-        navigate(createPageUrl('Dashboard'));
-      }, 2000);
+      if (activated) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate(createPageUrl('Dashboard'));
+        }, 2000);
+      } else {
+        setError('Invalid activation code. Please check and try again.');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to activate premium. Please contact support.');
     } finally {

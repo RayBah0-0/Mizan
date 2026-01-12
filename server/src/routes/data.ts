@@ -552,4 +552,69 @@ router.get('/report/monthly', async (req: Request, res: Response) => {
   }
 });
 
+// Store activation code
+router.post('/activation-code', authMiddleware, async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+  const { code, plan, expiresAt } = req.body;
+
+  if (!code || !plan) {
+    return res.status(400).json({ error: 'Code and plan are required' });
+  }
+
+  try {
+    const db = getDB();
+    await db.execute({
+      sql: 'INSERT OR REPLACE INTO activation_codes (code, clerk_user_id, plan, expires_at) VALUES (?, ?, ?, ?)',
+      args: [code, userId, plan, expiresAt]
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error storing activation code:', error);
+    res.status(500).json({ error: 'Failed to store activation code' });
+  }
+});
+
+// Validate activation code
+router.post('/validate-code', authMiddleware, async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+  const { code } = req.body;
+
+  if (!code) {
+    return res.status(400).json({ error: 'Code is required' });
+  }
+
+  try {
+    // Check for preset codes
+    const validPresetCodes = ['PREMIUM2025', 'LIFETIME2025'];
+    if (validPresetCodes.includes(code.toUpperCase().trim())) {
+      return res.json({ 
+        valid: true, 
+        plan: 'monthly',
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+      });
+    }
+
+    // Check database for user's activation code
+    const db = getDB();
+    const result = await db.execute({
+      sql: 'SELECT plan, expires_at FROM activation_codes WHERE code = ? AND clerk_user_id = ?',
+      args: [code.toUpperCase().trim(), userId]
+    });
+
+    if (result.rows.length > 0) {
+      const row = result.rows[0] as any;
+      res.json({ 
+        valid: true, 
+        plan: row.plan,
+        expiresAt: row.expires_at 
+      });
+    } else {
+      res.json({ valid: false });
+    }
+  } catch (error) {
+    console.error('Error validating code:', error);
+    res.status(500).json({ error: 'Failed to validate code' });
+  }
+});
+
 export default router;

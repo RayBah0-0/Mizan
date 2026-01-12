@@ -147,10 +147,11 @@ export default function Dashboard() {
       const plan = planType || 'monthly';
       
       // Stripe success - activate premium with correct plan and generate NEW code
-      const code = activatePremium(user.id, plan, true);
-      setActivationCode(code);
-      setPurchasedPlan(plan);
-      setShowPremiumActivated(true);
+      activatePremium(user.id, plan, true).then((code) => {
+        setActivationCode(code);
+        setPurchasedPlan(plan);
+        setShowPremiumActivated(true);
+      });
 
       // Clean URL
       const url = new URL(window.location.href);
@@ -175,7 +176,7 @@ export default function Dashboard() {
     // Simulate activation process (like Stripe's animation timing)
     await new Promise(resolve => setTimeout(resolve, 800));
 
-    const code = activatePremium(user?.id);
+    const code = await activatePremium(user?.id);
     setActivationCode(code);
     setShowPremiumActivated(true);
     setIsActivating(false);

@@ -158,6 +158,18 @@ export async function initDatabase() {
     )
   `);
 
+  // Activation codes table - for cross-device premium activation
+  await exec(`
+    CREATE TABLE IF NOT EXISTS activation_codes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      clerk_user_id TEXT NOT NULL,
+      plan TEXT NOT NULL,
+      expires_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   console.log('✅ Database initialized');
 }
 
