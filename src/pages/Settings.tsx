@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Bell, BellOff } from 'lucide-react';
+import { UserButton } from '@clerk/clerk-react';
 import { createPageUrl } from '@/utils/urls';
 import { clearAll, readUser, writeUser, updateLeaderboardUsername } from '@/utils/storage';
 import { readSettings, writeSettings } from '@/utils/storage';
@@ -172,7 +173,13 @@ export default function Settings() {
       setTimeout(() => setSavedMsg(''), 3000);
     } catch (error: any) {
       console.error('Error saving username:', error);
-      setUsernameError(error.message || 'Failed to update username. Please try again.');
+      
+      // Handle Clerk verification requirement
+      if (error.message?.includes('additional verification') || error.status === 403) {
+        setUsernameError('Username update requires verification. Please use the profile menu (top right) to update your username with password confirmation.');
+      } else {
+        setUsernameError(error.message || 'Failed to update username. Please try again.');
+      }
     }
   };
 
@@ -303,7 +310,9 @@ export default function Settings() {
 
               <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
                 <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Username</h2>
-                <p className="text-[#4a4a4d] text-xs mb-3">This is how you appear on the leaderboard (set during signup)</p>
+                <p className="text-[#4a4a4d] text-xs mb-3">
+                  How you appear on the leaderboard. For security, username changes require password verification via your profile menu (top right avatar).
+                </p>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <input

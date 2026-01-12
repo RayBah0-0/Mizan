@@ -2,6 +2,7 @@ import React from 'react';
 import SyncStatus from './SyncStatus';
 import { Link, useLocation } from 'react-router-dom';
 import { createPageUrl } from '@/utils/urls';
+import { UserButton } from '@clerk/clerk-react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -23,8 +24,19 @@ export default function Layout({ children }: LayoutProps) {
             <HeaderNavLink to={createPageUrl('Pricing')} label="Premium" />
             <HeaderNavLink to={createPageUrl('Settings')} label="Settings" />
           </nav>
-          <div className="pointer-events-auto absolute right-4 md:right-6 top-1/2 -translate-y-1/2 hidden md:block">
-            <SyncStatus />
+          <div className="pointer-events-auto absolute right-4 md:right-6 top-1/2 -translate-y-1/2 flex items-center gap-3">
+            <div className="hidden md:block">
+              <SyncStatus />
+            </div>
+            <UserButton 
+              appearance={{
+                elements: {
+                  userButtonAvatarBox: 'w-8 h-8',
+                  userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d]',
+                  userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d]',
+                }
+              }}
+            />
           </div>
         </header>
       )}
