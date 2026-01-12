@@ -38,20 +38,34 @@ export default function Layout({ children }: LayoutProps) {
                   colorInputText: '#c4c4c6',
                   colorText: '#c4c4c6',
                   colorTextSecondary: '#8a8a8d',
+                  colorTextOnPrimaryBackground: '#ffffff',
                   colorDanger: '#dc2626',
-                  borderRadius: '0.375rem'
+                  colorSuccess: '#2d4a3a',
+                  colorWarning: '#f59e0b',
+                  colorNeutral: '#8a8a8d',
+                  colorShimmer: '#1a1a1d',
+                  borderRadius: '0.375rem',
+                  fontFamily: 'inherit',
+                  fontSize: '0.875rem'
                 },
                 elements: {
                   userButtonAvatarBox: 'w-8 h-8 border border-[#1a1a1d]',
                   userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d] shadow-xl',
-                  userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d]',
+                  userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d] bg-transparent',
                   userButtonPopoverActionButtonText: 'text-[#c4c4c6]',
                   userButtonPopoverActionButtonIcon: 'text-[#8a8a8d]',
                   userButtonPopoverFooter: 'hidden',
-                  card: 'bg-[#0a0a0b]',
+                  card: 'bg-[#0a0a0b] text-[#c4c4c6]',
                   rootBox: 'bg-[#0a0a0b]',
                   userPreviewMainIdentifier: 'text-[#c4c4c6]',
-                  userPreviewSecondaryIdentifier: 'text-[#8a8a8d]'
+                  userPreviewSecondaryIdentifier: 'text-[#8a8a8d]',
+                  userButtonPopoverMain: 'bg-[#0a0a0b]',
+                  userButtonPopoverActions: 'bg-[#0a0a0b]',
+                  avatarBox: 'border border-[#1a1a1d]',
+                  badge: 'bg-[#2d4a3a] text-[#c4c4c6]',
+                  formButtonPrimary: 'bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a]',
+                  modalContent: 'bg-[#0a0a0b] text-[#c4c4c6]',
+                  modalCloseButton: 'text-[#8a8a8d] hover:text-[#c4c4c6]'
                 }
               }}
             />
