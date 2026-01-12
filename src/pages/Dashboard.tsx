@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Calendar, Target, Flame, Trophy, TrendingUp, CheckCircle2, AlertCircle, Crown } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
-import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog } from '@/utils/storage';
+import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog, writeUser, updateLeaderboardUsername } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
 import { activatePremium, migrateOldPremiumData, getPremiumStatus } from '@/lib/premium';
@@ -59,6 +59,18 @@ export default function Dashboard() {
   useEffect(() => {
     setQuietMode(isQuietModeEnabled());
   }, []);
+
+  // Watch for username changes from Clerk and update leaderboard
+  useEffect(() => {
+    if (user?.username) {
+      const storedUsername = readUser();
+      // If Clerk username differs from stored username, update leaderboard
+      if (storedUsername && storedUsername !== user.username) {
+        updateLeaderboardUsername(storedUsername, user.username);
+        writeUser(user.username);
+      }
+    }
+  }, [user?.username]);
 
   // Show recovery modal if premium user is in relapse
   useEffect(() => {

@@ -107,6 +107,18 @@ export default function Settings() {
     }
   }, [user?.id]);
 
+  // Watch for username changes from Clerk and update leaderboard
+  useEffect(() => {
+    if (user?.username) {
+      const storedUsername = readUser();
+      // If Clerk username differs from stored username, update leaderboard
+      if (storedUsername && storedUsername !== user.username) {
+        updateLeaderboardUsername(storedUsername, user.username);
+        writeUser(user.username);
+      }
+    }
+  }, [user?.username]);
+
   const handleUsernameSave = async () => {
     const trimmed = username.trim();
     
