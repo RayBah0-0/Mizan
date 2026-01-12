@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LogOut, Bell, BellOff } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
-import { clearAll, readUser, writeUser } from '@/utils/storage';
+import { clearAll, readUser, writeUser, updateLeaderboardUsername } from '@/utils/storage';
 import { readSettings, writeSettings } from '@/utils/storage';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 // Backend API no longer used - premium is localStorage-based
@@ -156,8 +156,17 @@ export default function Settings() {
         });
       }
       
+      // Get old username before updating
+      const oldUsername = user?.username || readUser();
+      
       // Save to localStorage for leaderboard
       writeUser(trimmed);
+      
+      // Update username in leaderboard entries
+      if (oldUsername && oldUsername !== trimmed) {
+        updateLeaderboardUsername(oldUsername, trimmed);
+      }
+      
       setUsernameError('');
       setSavedMsg('Username updated successfully!');
       setTimeout(() => setSavedMsg(''), 3000);

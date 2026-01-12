@@ -371,6 +371,17 @@ export function updateLeaderboard(user: string, delta: number): void {
   writeLeaderboard(current);
 }
 
+export function updateLeaderboardUsername(oldUsername: string, newUsername: string): void {
+  if (typeof window === 'undefined') return;
+  if (!oldUsername || !newUsername) return;
+  const current = readLeaderboard();
+  const entry = current.find((c) => c.user === oldUsername);
+  if (entry) {
+    entry.user = newUsername;
+    writeLeaderboard(current);
+  }
+}
+
 export function readMissionsProgress(): Record<string, MissionProgressEntry> {
   if (typeof window === 'undefined') return {};
   return safeParse<Record<string, MissionProgressEntry>>(window.localStorage.getItem(MISSIONS_KEY), {});
