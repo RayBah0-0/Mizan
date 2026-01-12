@@ -29,12 +29,23 @@ function getStorageKey(userId?: string): string {
   return `mizan_premium_${user}`;
 }
 
-function generateActivationCode(): string {
+function generateActivationCode(plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly'): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = 'PREM-';
-  for (let i = 0; i < 16; i++) {
+  
+  // Plan-specific prefixes
+  let prefix: string;
+  if (plan === 'lifetime') {
+    prefix = 'LIFE:';
+  } else if (plan === 'commitment') {
+    prefix = 'CMTM:';
+  } else {
+    prefix = 'YRLY:';
+  }
+  
+  // Generate 10 random characters
+  let code = prefix;
+  for (let i = 0; i < 10; i++) {
     code += chars[Math.floor(Math.random() * chars.length)];
-    if (i === 3 || i === 7 || i === 11) code += '-';
   }
   return code;
 }
@@ -119,7 +130,7 @@ export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' 
 
   // Check if user already has an activation code - preserve it
   const existing = readPremiumData(userId);
-  const code = existing?.activationCode || generateActivationCode();
+  const code = existing?.activationCode || generateActivationCode(plan);
 
   const premiumData: PremiumStatus = {
     active: true,

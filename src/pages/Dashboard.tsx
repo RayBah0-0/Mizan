@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [showPremiumActivated, setShowPremiumActivated] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
   const [activationCode, setActivationCode] = useState<string | null>(null);
+  const [purchasedPlan, setPurchasedPlan] = useState<'monthly' | 'commitment' | 'lifetime'>('monthly');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [quietMode, setQuietMode] = useState(false);
   const premium = getPremiumStatus(user?.id);
@@ -128,10 +129,12 @@ export default function Dashboard() {
     if (hasStripeSuccess) {
       // Get plan type from URL parameter
       const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
+      const plan = planType || 'monthly';
       
       // Stripe success - activate premium with correct plan
-      const code = activatePremium(user.id, planType || 'monthly');
+      const code = activatePremium(user.id, plan);
       setActivationCode(code);
+      setPurchasedPlan(plan);
       setShowPremiumActivated(true);
 
       // Clean URL
@@ -263,7 +266,11 @@ export default function Dashboard() {
                 <Crown className="w-4 h-4 text-[#0a0a0a]" />
               </motion.div>
               <h3 className="text-sm font-medium text-[#3dd98f] mb-2">Premium Activated Successfully!</h3>
-              <p className="text-xs text-[#6a6a6d] mb-3">Your premium features are now unlocked for 1 year.</p>
+              <p className="text-xs text-[#6a6a6d] mb-3">
+                {purchasedPlan === 'lifetime' ? 'Your premium features are now unlocked forever.' :
+                 purchasedPlan === 'commitment' ? 'Your premium features are now unlocked for 3 months.' :
+                 'Your premium features are now unlocked for 1 year.'}
+              </p>
 
               {activationCode && (
                 <div className="bg-[#0a0a0b] border border-[#1a1a1d] p-3 rounded-lg">
