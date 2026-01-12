@@ -131,8 +131,8 @@ export default function Dashboard() {
       const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
       const plan = planType || 'monthly';
       
-      // Stripe success - activate premium with correct plan
-      const code = activatePremium(user.id, plan);
+      // Stripe success - activate premium with correct plan and generate NEW code
+      const code = activatePremium(user.id, plan, true);
       setActivationCode(code);
       setPurchasedPlan(plan);
       setShowPremiumActivated(true);

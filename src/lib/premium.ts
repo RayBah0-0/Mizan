@@ -112,7 +112,7 @@ export function getPremiumStatus(userId?: string): PremiumStatus {
  * Called by: Stripe success, manual code entry, redeem URL
  * Returns: activation code for backup
  */
-export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly'): string {
+export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly', forceNewCode: boolean = false): string {
   let expiresAt: string | null;
   
   if (plan === 'lifetime') {
@@ -128,9 +128,9 @@ export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' 
     expiresAt = oneYearFromNow.toISOString();
   }
 
-  // Check if user already has an activation code - preserve it
+  // Generate new code for Stripe purchases, or preserve existing for other flows
   const existing = readPremiumData(userId);
-  const code = existing?.activationCode || generateActivationCode(plan);
+  const code = forceNewCode ? generateActivationCode(plan) : (existing?.activationCode || generateActivationCode(plan));
 
   const premiumData: PremiumStatus = {
     active: true,
