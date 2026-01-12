@@ -6,9 +6,14 @@ import { createPageUrl } from '@/utils/urls';
 import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
-import { activatePremium, migrateOldPremiumData } from '@/lib/premium';
+import { activatePremium, migrateOldPremiumData, getPremiumStatus } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 import { isQuietModeEnabled } from '@/utils/quietMode';
+import { generateMirrorInsights } from '@/utils/mirrorInsights';
+import { detectRelapse } from '@/utils/relapseRecovery';
+import { shouldShowGuidedPrompt, GuidedPrompt } from '@/utils/guidedPrompts';
+import RecoveryModal from '@/components/RecoveryModal';
+import GuidedPromptModal from '@/components/GuidedPromptModal';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -39,11 +44,52 @@ export default function Dashboard() {
   const [activationCode, setActivationCode] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [quietMode, setQuietMode] = useState(false);
+  const premium = getPremiumStatus(user?.id);
+  const mirrorInsights = useMemo(() => premium.active ? generateMirrorInsights(2) : [], [premium.active]);
+  const relapseDetection = useMemo(() => detectRelapse(), []);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [guidedPrompt, setGuidedPrompt] = useState<GuidedPrompt | null>(null);
+  const [showGuidedPrompt, setShowGuidedPrompt] = useState(false);
 
   // Check quiet mode on mount
   useEffect(() => {
     setQuietMode(isQuietModeEnabled());
   }, []);
+
+  // Show recovery modal if premium user is in relapse
+  useEffect(() => {
+    if (premium.active && relapseDetection.isInRelapse && !localStorage.getItem('recovery_modal_dismissed_today')) {
+      const timer = setTimeout(() => {
+        setShowRecoveryModal(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [premium.active, relapseDetection.isInRelapse]);
+
+  const handleRecoveryModalClose = () => {
+    setShowRecoveryModal(false);
+    // Mark as dismissed for today
+    localStorage.setItem('recovery_modal_dismissed_today', getTodayKey());
+  };
+
+  // Check for guided prompts (premium feature)
+  useEffect(() => {
+    if (premium.active && !relapseDetection.isInRelapse) {
+      const prompt = shouldShowGuidedPrompt();
+      if (prompt) {
+        const timer = setTimeout(() => {
+          setGuidedPrompt(prompt);
+          setShowGuidedPrompt(true);
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [premium.active, relapseDetection.isInRelapse]);
+
+  const handleGuidedPromptClose = () => {
+    setShowGuidedPrompt(false);
+    setGuidedPrompt(null);
+  };
 
   // Check for Stripe redirect and activate premium immediately
   useEffect(() => {
@@ -275,6 +321,22 @@ export default function Dashboard() {
             {metrics.todayHint}
           </motion.p>
 
+          {/* Mirror Insights - Premium */}
+          {mirrorInsights.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="mb-6 space-y-3"
+            >
+              {mirrorInsights.map((insight, i) => (
+                <div key={i} className="p-3 bg-[#0e0e10] border border-[#2d4a3a]/30 rounded">
+                  <p className="text-sm text-[#c4c4c6] leading-relaxed">{insight.message}</p>
+                </div>
+              ))}
+            </motion.div>
+          )}
+
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <motion.p 
@@ -496,6 +558,23 @@ export default function Dashboard() {
           </motion.div>
         </motion.div>
       </motion.div>
+
+      {/* Recovery Modal */}
+      <RecoveryModal
+        isOpen={showRecoveryModal}
+        onClose={handleRecoveryModalClose}
+        consecutiveMisses={relapseDetection.consecutiveMisses}
+        message={relapseDetection.message}
+      />
+
+      {/* Guided Prompt Modal */}
+      {guidedPrompt && (
+        <GuidedPromptModal
+          isOpen={showGuidedPrompt}
+          onClose={handleGuidedPromptClose}
+          prompt={guidedPrompt}
+        />
+      )}
     </div>
   );
 }

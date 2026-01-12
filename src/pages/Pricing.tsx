@@ -8,21 +8,34 @@ import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 const features = {
   free: [
-    'Daily check-ins & tracking',
-    'Basic analytics',
-    'Streak tracking',
-    '7-day cycle system',
-    'Export last 30 days'
+    'All 5 daily prayers tracked',
+    'Full check-in system',
+    '7-day cycle accountability',
+    'Basic progress tracking',
+    'Mission system & ranks'
   ],
-  premium: [
+  monthly: [
     'Everything in Free',
-    'Advanced analytics & insights',
-    'Full history export',
-    'Priority support',
-    'Custom categories',
-    'Detailed progress charts',
-    'Leaderboard rankings',
-    'Mission & achievement tracking'
+    'Mirror Insights - pattern analysis',
+    'Niyyah Mode - set intentions',
+    'Cycle Reflections - written summaries',
+    'Quiet Mode - hide gamification',
+    'Rank Meanings - spiritual context',
+    'Relapse Recovery - gentle return path',
+    'Guided Prompts - reflection questions',
+    'Advanced visual progress'
+  ],
+  commitment: [
+    'Everything in Monthly',
+    'Commit intentionally for 90 days',
+    'Lower price for longer commitment',
+    'Deepen your practice over time'
+  ],
+  lifetime: [
+    'Everything in Monthly',
+    'This is part of who I am',
+    'One-time payment, forever access',
+    'Never think about renewal again'
   ]
 };
 
@@ -121,113 +134,111 @@ export default function Pricing() {
           className="text-center mb-16"
         >
           <h1 className="text-5xl font-light tracking-wide mb-4">
-            Choose Your Path
+            Go Deeper
           </h1>
           <p className="text-[#6a6a6d] text-lg">
-            Start free, upgrade when you're ready for more power.
+            Free tracks everything. Premium helps you understand it.
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
           {/* Free Plan */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="p-8 border border-[#1a1a1d] bg-[#0a0a0b] hover:border-[#2a2a2d] transition-all duration-300"
+            className="p-6 border border-[#1a1a1d] bg-[#0a0a0b] hover:border-[#2a2a2d] transition-all duration-300"
           >
             <div className="flex items-center gap-3 mb-4">
-              <Lock className="w-6 h-6 text-[#6a6a6d]" />
-              <h2 className="text-2xl font-light">Free</h2>
+              <Lock className="w-5 h-5 text-[#6a6a6d]" />
+              <h2 className="text-xl font-light">Free</h2>
             </div>
             <div className="mb-6">
-              <span className="text-4xl font-light">$0</span>
-              <span className="text-[#6a6a6d] text-sm ml-2">forever</span>
+              <span className="text-3xl font-light">$0</span>
+              <span className="text-[#6a6a6d] text-xs ml-2">forever</span>
             </div>
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-2 mb-8 min-h-[200px]">
               {features.free.map((feature, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-[#4a7a5a] mt-0.5 flex-shrink-0" />
+                <li key={i} className="flex items-start gap-2 text-xs">
+                  <Check className="w-3 h-3 text-[#4a7a5a] mt-0.5 flex-shrink-0" />
                   <span className="text-[#8a8a8d]">{feature}</span>
                 </li>
               ))}
             </ul>
             <button
               onClick={() => navigate(createPageUrl('Dashboard'))}
-              className="w-full py-3 border border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] hover:border-[#3a3a3d] text-sm tracking-wide transition-all duration-300"
+              className="w-full py-2.5 border border-[#2a2a2d] text-[#8a8a8d] hover:text-[#c4c4c6] hover:border-[#3a3a3d] text-xs tracking-wide transition-all duration-300"
             >
-              Continue with Free
+              Start with Free
             </button>
           </motion.div>
 
-          {/* Premium Plan */}
+          {/* Monthly Premium */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="p-8 border-2 border-[#2d4a3a] bg-[#0a0a0b] relative overflow-hidden"
+            className="p-6 border-2 border-[#2d4a3a] bg-[#0a0a0b] relative overflow-hidden"
           >
-            <div className="absolute top-0 right-0 bg-[#2d4a3a] text-[#0a0a0a] text-xs font-semibold px-4 py-1">
-              BEST VALUE
+            <div className="absolute top-0 right-0 bg-[#2d4a3a] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
+              POPULAR
             </div>
             <div className="flex items-center gap-3 mb-4 mt-2">
-              <Crown className="w-6 h-6 text-[#3dd98f]" />
-              <h2 className="text-2xl font-light">Premium</h2>
+              <Crown className="w-5 h-5 text-[#3dd98f]" />
+              <h2 className="text-xl font-light">Monthly</h2>
             </div>
             <div className="mb-6">
-              <span className="text-4xl font-light">$10</span>
-              <span className="text-[#6a6a6d] text-sm ml-2">/year</span>
+              <span className="text-3xl font-light">$10</span>
+              <span className="text-[#6a6a6d] text-xs ml-2">/year</span>
             </div>
-            <ul className="space-y-3 mb-8">
-              {features.premium.map((feature, i) => (
-                <li key={i} className="flex items-start gap-3 text-sm">
-                  <Check className="w-4 h-4 text-[#3dd98f] mt-0.5 flex-shrink-0" />
+            <ul className="space-y-2 mb-8 min-h-[200px]">
+              {features.monthly.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs">
+                  <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
                   <span className="text-[#c4c4c6]">{feature}</span>
                 </li>
               ))}
             </ul>
             <button
               onClick={handleUpgrade}
-              className="w-full py-3 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
             >
               <Zap className="w-4 h-4" />
-              Upgrade to Premium
+              Reflect Intentionally
             </button>
 
-            {/* More Visible "Already Paid?" Button */}
             {!premium.active && (
-              <div className="mt-4">
+              <div className="mt-3">
                 <button
                   onClick={() => setShowCodeInput(!showCodeInput)}
-                  className="w-full py-3 bg-[#1a1a1d] hover:bg-[#2a2a2d] border-2 border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-sm tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
+                  className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                  <Key className="w-4 h-4" />
-                  Already paid? Activate your premium here →
+                  <Key className="w-3 h-3" />
+                  Already paid? Activate →
                 </button>
 
-                {/* Code Activation Input */}
                 {showCodeInput && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="mt-4 space-y-3"
+                    className="mt-3 space-y-2"
                   >
                     <div>
                       <input
                         type="text"
                         value={activationCode}
                         onChange={(e) => setActivationCode(e.target.value)}
-                        placeholder="Enter your activation code"
-                        className="w-full px-4 py-3 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
+                        placeholder="Enter code"
+                        className="w-full px-3 py-2 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] text-xs placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
                       />
                       {codeError && (
-                        <p className="text-red-400 text-sm mt-1">{codeError}</p>
+                        <p className="text-red-400 text-xs mt-1">{codeError}</p>
                       )}
                     </div>
                     <button
                       onClick={handleActivateWithCode}
-                      className="w-full py-2 bg-[#3dd98f] hover:bg-[#4eeaa0] text-[#0a0a0a] font-medium text-sm transition-colors"
+                      className="w-full py-2 bg-[#3dd98f] hover:bg-[#4eeaa0] text-[#0a0a0a] font-medium text-xs transition-colors"
                     >
                       Activate Premium
                     </button>
@@ -236,34 +247,104 @@ export default function Pricing() {
               </div>
             )}
           </motion.div>
+
+          {/* Commitment Pass (3 months) */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="p-6 border border-[#2d4a3a]/50 bg-[#0a0a0b] hover:border-[#2d4a3a] transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <Clock className="w-5 h-5 text-[#3dd98f]" />
+              <h2 className="text-xl font-light">Commitment Pass</h2>
+            </div>
+            <div className="mb-6">
+              <span className="text-3xl font-light">$9</span>
+              <span className="text-[#6a6a6d] text-xs ml-2">/3 months</span>
+            </div>
+            <ul className="space-y-2 mb-8 min-h-[200px]">
+              {features.commitment.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs">
+                  <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
+                  <span className="text-[#c4c4c6]">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => window.open('https://buy.stripe.com/test_commitment_3mo', '_blank')}
+              className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
+            >
+              Commit for 90 Days
+            </button>
+          </motion.div>
+
+          {/* Lifetime Access */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            className="p-6 border border-[#2d4a3a]/50 bg-[#0a0a0b] hover:border-[#2d4a3a] transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 bg-[#3dd98f] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
+              BEST DEAL
+            </div>
+            <div className="flex items-center gap-3 mb-4 mt-2">
+              <Crown className="w-5 h-5 text-[#3dd98f]" />
+              <h2 className="text-xl font-light">Lifetime</h2>
+            </div>
+            <div className="mb-6">
+              <span className="text-3xl font-light">$49</span>
+              <span className="text-[#6a6a6d] text-xs ml-2">once</span>
+            </div>
+            <ul className="space-y-2 mb-8 min-h-[200px]">
+              {features.lifetime.map((feature, i) => (
+                <li key={i} className="flex items-start gap-2 text-xs">
+                  <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
+                  <span className="text-[#c4c4c6]">{feature}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              onClick={() => window.open('https://buy.stripe.com/test_lifetime_49', '_blank')}
+              className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300"
+            >
+              This Is Who I Am
+            </button>
+          </motion.div>
         </div>
 
-        {/* Additional Benefits */}
+        {/* Premium Philosophy */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="mt-16 grid md:grid-cols-3 gap-6 max-w-5xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-16 max-w-5xl mx-auto"
         >
-          <div className="p-6 border border-[#1a1a1d] bg-[#0a0a0b] text-center">
-            <TrendingUp className="w-8 h-8 text-[#3dd98f] mx-auto mb-3" />
-            <h3 className="text-sm font-semibold mb-2">Advanced Insights</h3>
-            <p className="text-xs text-[#6a6a6d]">
-              Detailed charts and analytics to track your progress over time
-            </p>
-          </div>
-          <div className="p-6 border border-[#1a1a1d] bg-[#0a0a0b] text-center">
-            <BarChart3 className="w-8 h-8 text-[#3dd98f] mx-auto mb-3" />
-            <h3 className="text-sm font-semibold mb-2">Full History</h3>
-            <p className="text-xs text-[#6a6a6d]">
-              Export and analyze your complete journey, not just recent data
-            </p>
-          </div>
-          <div className="p-6 border border-[#1a1a1d] bg-[#0a0a0b] text-center">
-            <Zap className="w-8 h-8 text-[#3dd98f] mx-auto mb-3" />
-            <h3 className="text-sm font-semibold mb-2">Priority Support</h3>
-            <p className="text-xs text-[#6a6a6d]">
-              Get help faster with dedicated support channels
+          <div className="p-8 border border-[#1a1a1d] bg-[#0a0a0b]">
+            <h3 className="text-lg font-light mb-4 text-center">What Premium Means</h3>
+            <div className="grid md:grid-cols-3 gap-6 text-center">
+              <div>
+                <TrendingUp className="w-6 h-6 text-[#3dd98f] mx-auto mb-2" />
+                <p className="text-xs text-[#8a8a8d]">
+                  Pattern analysis that shows you where you're struggling — gently
+                </p>
+              </div>
+              <div>
+                <BarChart3 className="w-6 h-6 text-[#3dd98f] mx-auto mb-2" />
+                <p className="text-xs text-[#8a8a8d]">
+                  Reflection tools that help you understand your journey
+                </p>
+              </div>
+              <div>
+                <Zap className="w-6 h-6 text-[#3dd98f] mx-auto mb-2" />
+                <p className="text-xs text-[#8a8a8d]">
+                  Niyyah & intention-setting for deeper spiritual practice
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-[#6a6a6d] text-center mt-6">
+              Free gives you everything you need. Premium helps you understand what you're doing.
             </p>
           </div>
         </motion.div>
@@ -272,9 +353,9 @@ export default function Pricing() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.7 }}
-          className="text-center text-[#4a4a4d] text-sm mt-12"
+          className="text-center text-[#4a4a4d] text-xs mt-12"
         >
-          Annual subscription. Cancel anytime. No hidden fees.
+          All subscriptions can be cancelled anytime. No hidden fees. Your data stays yours.
         </motion.p>
       </div>
     </div>

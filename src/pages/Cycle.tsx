@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Heart } from 'lucide-react';
+import { Heart, BookOpen } from 'lucide-react';
 import { useCycle } from '@/hooks/useCycle';
 import { CycleGrid } from '@/components/CycleGrid';
 import { createPageUrl } from '@/utils/urls';
 import { NiyyahModal } from '@/components/NiyyahModal';
 import { getPremiumStatus } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
+import { generateCycleReflection } from '@/utils/cycleReflection';
 
 export default function Cycle() {
   const navigate = useNavigate();
@@ -17,6 +18,11 @@ export default function Cycle() {
   const previous = cycles.length > 1 ? cycles[cycles.length - 2] : null;
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);
   const currentNiyyah = getCurrentNiyyah();
+  
+  // Generate reflection for completed previous cycle
+  const previousReflection = previous && previous.days.length === 7 && premium.active 
+    ? generateCycleReflection(previous.days) 
+    : null;
 
   // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
   useEffect(() => {
@@ -95,13 +101,50 @@ export default function Cycle() {
           </motion.div>
           
           {previous && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-            >
-              <CycleGrid filled={previous.days.length} label={`Previous (${previous.days.length}/7)`} />
-            </motion.div>
+            <>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15 }}
+              >
+                <CycleGrid filled={previous.days.length} label={`Previous (${previous.days.length}/7)`} />
+              </motion.div>
+              
+              {/* Cycle Reflection Summary - Premium */}
+              {previousReflection && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.25 }}
+                  className="p-6 bg-[#0e0e10] border border-[#2d4a3a]/30 rounded space-y-4"
+                >
+                  <div className="flex items-center gap-2 mb-4">
+                    <BookOpen className="w-5 h-5 text-[#3dd98f]" />
+                    <h3 className="text-sm text-[#c4c4c6] font-medium">Cycle Reflection</h3>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-[#6a6a6d] uppercase tracking-wide mb-2">What Improved</p>
+                    <p className="text-sm text-[#c4c4c6] leading-relaxed">{previousReflection.improvements}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-[#6a6a6d] uppercase tracking-wide mb-2">Where to Focus</p>
+                    <p className="text-sm text-[#c4c4c6] leading-relaxed">{previousReflection.weaknesses}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-xs text-[#6a6a6d] uppercase tracking-wide mb-2">Strongest Area</p>
+                    <p className="text-sm text-[#c4c4c6] leading-relaxed">{previousReflection.strongestArea}</p>
+                  </div>
+                  
+                  <div className="pt-4 border-t border-[#1a1a1d]">
+                    <p className="text-xs text-[#6a6a6d] uppercase tracking-wide mb-2">Reflect On This</p>
+                    <p className="text-sm text-[#3dd98f] leading-relaxed italic">{previousReflection.reflectionQuestion}</p>
+                  </div>
+                </motion.div>
+              )}
+            </>
           )}
         </motion.div>
 
