@@ -60,17 +60,20 @@ export default function Dashboard() {
     setQuietMode(isQuietModeEnabled());
   }, []);
 
-  // Watch for username changes from Clerk and update leaderboard
+  // Sync username from Clerk to leaderboard on every load and user change
   useEffect(() => {
     if (user?.username) {
       const storedUsername = readUser();
-      // If Clerk username differs from stored username, update leaderboard
-      if (storedUsername && storedUsername !== user.username) {
-        updateLeaderboardUsername(storedUsername, user.username);
+      // Always update if different, regardless of when it changed
+      if (storedUsername !== user.username) {
+        console.log('Syncing username: ', storedUsername, ' -> ', user.username);
+        if (storedUsername) {
+          updateLeaderboardUsername(storedUsername, user.username);
+        }
         writeUser(user.username);
       }
     }
-  }, [user?.username]);
+  }, [user, user?.username]);
 
   // Show recovery modal if premium user is in relapse
   useEffect(() => {

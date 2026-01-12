@@ -107,17 +107,20 @@ export default function Settings() {
     }
   }, [user?.id]);
 
-  // Watch for username changes from Clerk and update leaderboard
+  // Sync username from Clerk to leaderboard on every user change
   useEffect(() => {
     if (user?.username) {
       const storedUsername = readUser();
-      // If Clerk username differs from stored username, update leaderboard
-      if (storedUsername && storedUsername !== user.username) {
-        updateLeaderboardUsername(storedUsername, user.username);
+      // Always update if different
+      if (storedUsername !== user.username) {
+        console.log('Syncing username in Settings: ', storedUsername, ' -> ', user.username);
+        if (storedUsername) {
+          updateLeaderboardUsername(storedUsername, user.username);
+        }
         writeUser(user.username);
       }
     }
-  }, [user?.username]);
+  }, [user, user?.username]);
 
   const handleUsernameSave = async () => {
     const trimmed = username.trim();
