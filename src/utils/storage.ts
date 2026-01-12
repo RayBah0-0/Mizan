@@ -230,6 +230,27 @@ export function clearAll(): void {
   window.localStorage.removeItem(POINTS_LOG_KEY);
   window.localStorage.removeItem(MISSIONS_KEY);
   window.localStorage.removeItem(ACHIEVEMENTS_KEY);
+  
+  // Clear notification settings
+  window.localStorage.removeItem('mizan_notifications_enabled');
+  window.localStorage.removeItem('mizan_notification_times');
+  window.localStorage.removeItem('mizan_notify_daily_checkin');
+  window.localStorage.removeItem('mizan_notify_cycle_end');
+  window.localStorage.removeItem('mizan_reminders_per_day');
+  
+  // Clear premium features
+  window.localStorage.removeItem('mizan_quiet_mode');
+  window.localStorage.removeItem('mizan_recovery_reflections');
+  window.localStorage.removeItem('mizan_guided_reflections');
+  
+  // Clear niyyah tracking (all cycles)
+  const allKeys = Object.keys(window.localStorage);
+  allKeys.forEach(key => {
+    if (key.startsWith('niyyah_shown_') || key.startsWith('cycle_niyyah_')) {
+      window.localStorage.removeItem(key);
+    }
+  });
+  
   // Don't clear user key on reset - user stays logged in
 }
 

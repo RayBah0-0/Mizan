@@ -30,10 +30,28 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <UserButton 
               appearance={{
+                baseTheme: undefined,
+                variables: {
+                  colorPrimary: '#2d4a3a',
+                  colorBackground: '#0a0a0b',
+                  colorInputBackground: '#0e0e10',
+                  colorInputText: '#c4c4c6',
+                  colorText: '#c4c4c6',
+                  colorTextSecondary: '#8a8a8d',
+                  colorDanger: '#dc2626',
+                  borderRadius: '0.375rem'
+                },
                 elements: {
-                  userButtonAvatarBox: 'w-8 h-8',
-                  userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d]',
+                  userButtonAvatarBox: 'w-8 h-8 border border-[#1a1a1d]',
+                  userButtonPopoverCard: 'bg-[#0a0a0b] border border-[#1a1a1d] shadow-xl',
                   userButtonPopoverActionButton: 'text-[#c4c4c6] hover:bg-[#1a1a1d]',
+                  userButtonPopoverActionButtonText: 'text-[#c4c4c6]',
+                  userButtonPopoverActionButtonIcon: 'text-[#8a8a8d]',
+                  userButtonPopoverFooter: 'hidden',
+                  card: 'bg-[#0a0a0b]',
+                  rootBox: 'bg-[#0a0a0b]',
+                  userPreviewMainIdentifier: 'text-[#c4c4c6]',
+                  userPreviewSecondaryIdentifier: 'text-[#8a8a8d]'
                 }
               }}
             />
