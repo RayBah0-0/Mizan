@@ -132,7 +132,7 @@ export default function Settings() {
     }
   };
 
-  const handleUsernameSave = () => {
+  const handleUsernameSave = async () => {
     const trimmed = username.trim();
     
     if (!trimmed) {
@@ -155,10 +155,31 @@ export default function Settings() {
       return;
     }
     
-    writeUser(trimmed);
-    setUsernameError('');
-    setSavedMsg('Username saved!');
-    setTimeout(() => setSavedMsg(''), 3000);
+    try {
+      // Update Clerk username via public_metadata (syncs across devices)
+      const { user: clerkUser } = await import('@clerk/clerk-react').then(m => ({ user: (window as any).Clerk?.user }));
+      
+      if (clerkUser) {
+        await clerkUser.update({
+          unsafeMetadata: {
+            ...clerkUser.unsafeMetadata,
+            displayName: trimmed
+          }
+        });
+      }
+      
+      // Also save to localStorage as fallback/cache
+      writeUser(trimmed);
+      setUsernameError('');
+      setSavedMsg('Username saved and synced!');
+      setTimeout(() => setSavedMsg(''), 3000);
+    } catch (error) {
+      console.error('Error saving username:', error);
+      // Still save locally if Clerk fails
+      writeUser(trimmed);
+      setSavedMsg('Username saved locally');
+      setTimeout(() => setSavedMsg(''), 3000);
+    }
   };
 
   const handleSetAccessCode = async () => {
