@@ -126,8 +126,11 @@ export default function Dashboard() {
       urlParams.has('session_id');
 
     if (hasStripeSuccess) {
-      // Stripe success - activate premium immediately
-      const code = activatePremium(user.id);
+      // Get plan type from URL parameter
+      const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
+      
+      // Stripe success - activate premium with correct plan
+      const code = activatePremium(user.id, planType || 'monthly');
       setActivationCode(code);
       setShowPremiumActivated(true);
 
@@ -136,6 +139,7 @@ export default function Dashboard() {
       url.searchParams.delete('payment');
       url.searchParams.delete('redirect_status');
       url.searchParams.delete('session_id');
+      url.searchParams.delete('plan');
       window.history.replaceState({}, '', url.toString());
     }
   }, [user?.id]);

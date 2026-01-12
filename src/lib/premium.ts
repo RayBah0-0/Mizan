@@ -101,9 +101,21 @@ export function getPremiumStatus(userId?: string): PremiumStatus {
  * Called by: Stripe success, manual code entry, redeem URL
  * Returns: activation code for backup
  */
-export function activatePremium(userId?: string): string {
-  const oneYearFromNow = new Date();
-  oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+export function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly'): string {
+  let expiresAt: string | null;
+  
+  if (plan === 'lifetime') {
+    expiresAt = null; // No expiration
+  } else if (plan === 'commitment') {
+    const threeMonthsFromNow = new Date();
+    threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+    expiresAt = threeMonthsFromNow.toISOString();
+  } else {
+    // monthly (1 year)
+    const oneYearFromNow = new Date();
+    oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+    expiresAt = oneYearFromNow.toISOString();
+  }
 
   // Check if user already has an activation code - preserve it
   const existing = readPremiumData(userId);
@@ -111,7 +123,7 @@ export function activatePremium(userId?: string): string {
 
   const premiumData: PremiumStatus = {
     active: true,
-    expiresAt: oneYearFromNow.toISOString(),
+    expiresAt,
     activationCode: code,
   };
 
