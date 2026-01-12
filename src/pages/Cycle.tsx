@@ -26,15 +26,25 @@ export default function Cycle() {
     : null;
 
   // Show Niyyah modal for premium users when starting new cycle (currentProgress === 0)
+  // Debug: log the conditions
   useEffect(() => {
+    console.log('Niyyah Check:', {
+      premiumActive: premium.active,
+      currentProgress,
+      currentNiyyah,
+      hasShownNiyyah,
+      cyclesLength: cycles.length
+    });
+    
     if (premium.active && currentProgress === 0 && !currentNiyyah && !hasShownNiyyah) {
+      console.log('Showing Niyyah modal in 500ms...');
       const timer = setTimeout(() => {
         setShowNiyyahModal(true);
         setHasShownNiyyah(true);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [premium.active, currentProgress, currentNiyyah, hasShownNiyyah]);
+  }, [premium.active, currentProgress, currentNiyyah, hasShownNiyyah, cycles.length]);
 
   const handleNiyyahSubmit = (intention: string) => {
     setCurrentNiyyah(intention);
