@@ -14,7 +14,7 @@ const features = {
     'Basic progress tracking',
     'Mission system & ranks'
   ],
-  monthly: [
+  yearly: [
     'Everything in Free',
     'Mirror Insights - pattern analysis',
     'Niyyah Mode - set intentions',
@@ -26,13 +26,13 @@ const features = {
     'Advanced visual progress'
   ],
   commitment: [
-    'Everything in Monthly',
+    'Everything in Yearly',
     'Commit intentionally for 90 days',
     'Lower price for longer commitment',
     'Deepen your practice over time'
   ],
   lifetime: [
-    'Everything in Monthly',
+    'Everything in Yearly',
     'This is part of who I am',
     'One-time payment, forever access',
     'Never think about renewal again'
@@ -58,7 +58,7 @@ export default function Pricing() {
 
   const handleUpgrade = () => {
     // Open payment link in new tab
-    window.open('https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01', '_blank');
+    window.open('https://buy.stripe.com/5kQbJ109xauE2ONelLfUQ06', '_blank');
   };
 
   const handleActivateWithCode = () => {
@@ -79,7 +79,7 @@ export default function Pricing() {
   };
 
   const handleRenewal = () => {
-    window.open('https://buy.stripe.com/test_fZubJ12hF46gahf5PffUQ01', '_blank');
+    window.open('https://buy.stripe.com/5kQbJ109xauE2ONelLfUQ06', '_blank');
   };
 
   return (
@@ -173,7 +173,7 @@ export default function Pricing() {
             </button>
           </motion.div>
 
-          {/* Monthly Premium */}
+          {/* Yearly Premium */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -191,14 +191,14 @@ export default function Pricing() {
             )}
             <div className="flex items-center gap-3 mb-4 mt-2">
               <Crown className="w-5 h-5 text-[#3dd98f]" />
-              <h2 className="text-xl font-light">Monthly</h2>
+              <h2 className="text-xl font-light">Yearly</h2>
             </div>
             <div className="mb-6">
               <span className="text-3xl font-light">$10</span>
               <span className="text-[#6a6a6d] text-xs ml-2">/year</span>
             </div>
             <ul className="space-y-2 mb-8 min-h-[200px]">
-              {features.monthly.map((feature, i) => (
+              {features.yearly.map((feature, i) => (
                 <li key={i} className="flex items-start gap-2 text-xs">
                   <Check className="w-3 h-3 text-[#3dd98f] mt-0.5 flex-shrink-0" />
                   <span className="text-[#c4c4c6]">{feature}</span>
@@ -285,7 +285,7 @@ export default function Pricing() {
                 ))}
               </ul>
               <button
-                onClick={() => window.open('https://buy.stripe.com/test_commitment_3mo', '_blank')}
+                onClick={() => window.open('https://buy.stripe.com/7sY5kDe0n46ggFD6TjfUQ07', '_blank')}
                 className="w-full py-2.5 bg-[#1a1a1d] hover:bg-[#2a2a2d] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300"
               >
                 Commit for 90 Days
@@ -320,7 +320,7 @@ export default function Pricing() {
               ))}
             </ul>
             <button
-              onClick={() => window.open('https://buy.stripe.com/test_lifetime_49', '_blank')}
+              onClick={() => window.open('https://buy.stripe.com/5kQcN57BZ0U4exv3H7fUQ08', '_blank')}
               className="w-full py-2.5 bg-[#2d4a3a] hover:bg-[#3d5a4a] text-[#0a0a0a] font-semibold text-xs tracking-wide transition-all duration-300"
             >
               This Is Who I Am
