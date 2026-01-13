@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Crown, Check, AlertCircle } from 'lucide-react';
 import { activateWithCode } from '@/lib/premium';
 import { createPageUrl } from '@/utils/urls';
+import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 export default function ActivatePremium() {
   const [activationCode, setActivationCode] = useState('');
@@ -11,6 +12,7 @@ export default function ActivatePremium() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { user } = useClerkAuth();
 
   const handleActivate = async () => {
     if (!activationCode.trim()) {
@@ -22,8 +24,7 @@ export default function ActivatePremium() {
     setError('');
 
     try {
-      const userId = JSON.parse(localStorage.getItem('mizan_v1_user') || '""');
-      const activated = await activateWithCode(activationCode, userId);
+      const activated = await activateWithCode(activationCode, user?.id);
       
       if (activated) {
         setSuccess(true);
