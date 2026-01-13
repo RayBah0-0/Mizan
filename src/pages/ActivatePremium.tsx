@@ -28,7 +28,8 @@ export default function ActivatePremium() {
       if (activated) {
         setSuccess(true);
         setTimeout(() => {
-          navigate(createPageUrl('Dashboard'));
+          // Force full page reload to refresh premium status everywhere
+          window.location.href = createPageUrl('Dashboard');
         }, 2000);
       } else {
         setError('Invalid activation code. Please check and try again.');
