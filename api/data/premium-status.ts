@@ -10,34 +10,27 @@ async function ensureDB() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await ensureDB();
-
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  // Extract userId from Clerk token (simplified - in production, verify the JWT)
-  const token = authHeader.substring(7);
-  
-  // For now, we'll extract the userId from the token payload without full verification
-  // In production, you should verify the JWT signature
   try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    const userId = payload.sub;
+    await ensureDB();
+
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    if (req.method !== 'GET') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { userId } = req.query;
+
+    if (!userId || typeof userId !== 'string') {
+      return res.status(400).json({ error: 'userId is required' });
+    }
 
     const db = getDB();
     const result = await db.execute({
@@ -71,6 +64,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error) {
     console.error('Error getting premium status:', error);
-    return res.status(500).json({ error: 'Failed to get premium status' });
+    return res.status(500).json({ error: 'Failed to get premium status', details: (error as Error).message });
   }
 }

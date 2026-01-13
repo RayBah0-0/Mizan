@@ -82,28 +82,21 @@ function writePremiumData(data: PremiumStatus, userId?: string): void {
  */
 export async function getPremiumStatus(userId?: string, getToken?: () => Promise<string | null>): Promise<PremiumStatus> {
   try {
-    // Try to get from database first if we have auth
-    if (getToken) {
+    // Try to get from database first if we have userId
+    if (userId) {
       try {
-        const token = await getToken();
-        if (token) {
-          const response = await fetch('/api/data/premium-status', {
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Store in localStorage for offline access
-            const premiumData = {
-              active: data.active,
-              expiresAt: data.expiresAt,
-              activationCode: null
-            };
-            writePremiumData(premiumData, userId);
-            return premiumData;
-          }
+        const response = await fetch(`/api/data/premium-status?userId=${userId}`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          // Store in localStorage for offline access
+          const premiumData = {
+            active: data.active,
+            expiresAt: data.expiresAt,
+            activationCode: null
+          };
+          writePremiumData(premiumData, userId);
+          return premiumData;
         }
       } catch (error) {
         console.warn('Failed to fetch premium from database, using localStorage:', error);
@@ -194,19 +187,18 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
   writePremiumData(premiumData, userId);
 
   // Store in database for cross-device access
-  if (clerkToken) {
+  if (userId) {
     try {
       const response = await fetch('/api/data/set-premium', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${clerkToken}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ plan, expiresAt })
+        body: JSON.stringify({ userId, plan, expiresAt })
       });
       
       if (!response.ok) {
-        const error = await response.text();
+        const error = await response.json();
         console.error('Failed to store premium in database:', error);
         throw new Error('Database storage failed');
       }
@@ -217,7 +209,7 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
       throw error; // Re-throw so caller knows it failed
     }
   } else {
-    console.warn('No Clerk token provided, premium not stored in database');
+    console.warn('No userId provided, premium not stored in database');
   }
   
   return 'ACTIVATED'; // Return simple confirmation instead of code

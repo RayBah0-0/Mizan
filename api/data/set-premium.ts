@@ -10,38 +10,27 @@ async function ensureDB() {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  await ensureDB();
-
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  const { plan, expiresAt } = req.body;
-
-  if (!plan) {
-    return res.status(400).json({ error: 'Plan is required' });
-  }
-
-  // Extract userId from Clerk token
-  const token = authHeader.substring(7);
-  
   try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    const userId = payload.sub;
+    await ensureDB();
+
+    // CORS
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+    }
+
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+
+    const { userId, plan, expiresAt } = req.body;
+
+    if (!userId || !plan) {
+      return res.status(400).json({ error: 'userId and plan are required' });
+    }
 
     const db = getDB();
     
@@ -69,6 +58,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error('Error setting premium:', error);
-    return res.status(500).json({ error: 'Failed to set premium' });
+    return res.status(500).json({ error: 'Failed to set premium', details: (error as Error).message });
   }
 }
