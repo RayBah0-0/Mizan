@@ -52,7 +52,7 @@ export default function Settings() {
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const navigate = useNavigate();
-  const { user, signOut, premiumStatus: premium } = useClerkAuth();
+  const { user, signOut, premiumStatus: premium, premiumLoading } = useClerkAuth();
 
   useEffect(() => {
     // Check notification status
@@ -326,84 +326,8 @@ export default function Settings() {
             </>
           )}
 
-          {/* Premium Key Section */}
-          {premium.active && premium.activationCode && (
-            <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
-              <h2 className="text-[#c4c4c6] text-sm tracking-wide mb-3">Premium Key</h2>
-              <div className="space-y-3">
-                <p className="text-[#4a4a4d] text-xs mb-3">Your activation code for backup reactivation</p>
-                <motion.button
-                  onClick={() => setShowPremiumKey(!showPremiumKey)}
-                  whileHover={{ scale: 1.05, color: '#c4c4c6' }}
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className="flex items-center gap-2 text-[#6a6a6d] text-sm transition-colors"
-                >
-                  <span className="w-4 h-4 border border-current rounded flex items-center justify-center text-xs">
-                    {showPremiumKey ? '−' : '+'}
-                  </span>
-                  {showPremiumKey ? 'Hide Key' : 'Show Key'}
-                </motion.button>
-                {showPremiumKey && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="bg-[#0e0e10] border border-[#1a1a1d] p-3 rounded"
-                  >
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 bg-[#1a1a1d] text-[#3dd98f] font-mono text-sm rounded border border-[#2a2a2d]">
-                        {premium.activationCode}
-                      </code>
-                      <motion.button
-                        onClick={async () => {
-                          await navigator.clipboard.writeText(premium.activationCode!);
-                          setPremiumKeyCopyStatus('copied');
-                          setTimeout(() => setPremiumKeyCopyStatus('idle'), 2000);
-                        }}
-                        whileHover={{ scale: 1.05, backgroundColor: '#3d5a4a' }}
-                        whileTap={{ scale: 0.95 }}
-                        className="px-3 py-1 bg-[#2d4a3a] text-[#0a0a0a] text-sm rounded transition-colors min-w-[60px]"
-                        animate={premiumKeyCopyStatus === 'copied' ? { scale: [1, 1.1, 1] } : {}}
-                        transition={{ duration: 0.3 }}
-                      >
-                        <motion.span
-                          key={premiumKeyCopyStatus}
-                          initial={{ opacity: 0, y: -10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 10 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {premiumKeyCopyStatus === 'copied' ? 'Copied!' : 'Copy'}
-                        </motion.span>
-                      </motion.button>
-                    </div>
-                    <p className="text-[#4a4a4d] text-xs mt-2">Use this code to reactivate premium on another device or after data reset.</p>
-                    <div className="mt-3 pt-3 border-t border-[#1a1a1d]">
-                      <motion.button
-                        onClick={() => {
-                          clearPremiumData(user?.id);
-                          setSavedMsg('Premium data cleared for current user');
-                          setTimeout(() => setSavedMsg(''), 3000);
-                          // Refresh the page to update the UI
-                          window.location.reload();
-                        }}
-                        whileHover={{ scale: 1.05, backgroundColor: '#dc2626' }}
-                        whileTap={{ scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="px-3 py-1 bg-red-600 text-white text-xs rounded transition-colors"
-                      >
-                        Clear Premium Data
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                )}
-              </div>
-            </section>
-          )}
-
           {/* Quiet Mode - Premium Feature */}
-          {premium.active && (
+          {premium?.active && (
             <section className="p-6 border border-[#1a1a1d] bg-[#0a0a0b]">
               <div className="flex items-center justify-between mb-3">
                 <div>

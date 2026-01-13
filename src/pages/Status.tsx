@@ -5,7 +5,6 @@ import { Lock } from 'lucide-react';
 import { listMissions, listAchievements } from '@/utils/gamification';
 import { useCycle } from '@/hooks/useCycle';
 import { CycleGrid } from '@/components/CycleGrid';
-import { getPremiumStatus } from '@/lib/premium';
 import { isQuietModeEnabled } from '@/utils/quietMode';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
@@ -256,7 +255,7 @@ export default function Status() {
             {rankInfo.definition}
           </motion.p>
           
-          {premium.active && RANK_MEANINGS[totals.rank] && (
+          {premiumStatus?.active && RANK_MEANINGS[totals.rank] && (
             <motion.div
               className="p-3 bg-[#0e0e10] border border-[#2d4a3a]/30 rounded mb-4"
               initial={{ opacity: 0, height: 0 }}

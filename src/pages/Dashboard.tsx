@@ -42,7 +42,7 @@ export default function Dashboard() {
   const { cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const [quietMode, setQuietMode] = useState(false);
   
-  const mirrorInsights = useMemo(() => premiumStatus.active ? generateMirrorInsights(2) : [], [premiumStatus.active]);
+  const mirrorInsights = useMemo(() => premiumStatus?.active ? generateMirrorInsights(2) : [], [premiumStatus?.active]);
   const relapseDetection = useMemo(() => detectRelapse(), []);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);
   const [guidedPrompt, setGuidedPrompt] = useState<GuidedPrompt | null>(null);
@@ -72,7 +72,7 @@ export default function Dashboard() {
 
   // Show recovery modal if premium user is in relapse
   useEffect(() => {
-    if (premiumStatus.active && relapseDetection.isInRelapse && !localStorage.getItem('recovery_modal_dismissed_today')) {
+    if (premiumStatus?.active && relapseDetection.isInRelapse && !localStorage.getItem('recovery_modal_dismissed_today')) {
       const timer = setTimeout(() => {
         setShowRecoveryModal(true);
       }, 1000);
@@ -88,7 +88,7 @@ export default function Dashboard() {
 
   // Check for guided prompts (premium feature)
   useEffect(() => {
-    if (premiumStatus.active && !relapseDetection.isInRelapse) {
+    if (premiumStatus?.active && !relapseDetection.isInRelapse) {
       const prompt = shouldShowGuidedPrompt();
       if (prompt) {
         const timer = setTimeout(() => {
@@ -112,7 +112,7 @@ export default function Dashboard() {
     const niyyahShownKey = `niyyah_shown_${user.id}_cycle_${cyclesCompleted}`;
     const hasShownBefore = localStorage.getItem(niyyahShownKey) === 'true';
     
-    if (premiumStatus.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownBefore) {
+    if (premiumStatus?.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownBefore) {
       const timer = setTimeout(() => {
         setShowNiyyahModal(true);
         localStorage.setItem(niyyahShownKey, 'true');

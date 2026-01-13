@@ -56,7 +56,7 @@ export default function Pricing() {
       <div className="max-w-6xl mx-auto">
 
         {/* Premium Status Banner */}
-        {premium.active && (
+        {premium?.active && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,7 +66,7 @@ export default function Pricing() {
               <Crown className="w-4 h-4" />
               <span className="text-sm font-medium">Premium Plan Active</span>
             </div>
-            {premium.expiresAt && (
+            {premium?.expiresAt && (
               <p className="text-xs text-[#6a6a6d] mt-1">
                 Expires: {new Date(premium.expiresAt).toLocaleDateString()}
               </p>
@@ -75,7 +75,7 @@ export default function Pricing() {
         )}
 
         {/* Premium Expired Banner */}
-        {premium.expiresAt && new Date(premium.expiresAt) < new Date() && (
+        {premium?.expiresAt && new Date(premium.expiresAt) < new Date() && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,7 +155,7 @@ export default function Pricing() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="p-6 border-2 border-[#2d4a3a] bg-[#0a0a0b] relative overflow-hidden"
           >
-            {premium.active ? (
+            {premium?.active ? (
               <div className="absolute top-0 right-0 bg-[#3dd98f] text-[#0a0a0a] text-xs font-semibold px-3 py-1">
                 CURRENT PLAN
               </div>
@@ -180,9 +180,9 @@ export default function Pricing() {
                 </li>
               ))}
             </ul>
-            {premium.active ? (
+            {premium?.active ? (
               <div className="w-full py-2.5 bg-[#0e0e10] border border-[#3dd98f] text-[#3dd98f] font-medium text-xs tracking-wide text-center">
-                Active Until {premium.expiresAt ? new Date(premium.expiresAt).toLocaleDateString() : 'Lifetime'}
+                Active Until {premium?.expiresAt ? new Date(premium.expiresAt).toLocaleDateString() : 'Lifetime'}
               </div>
             ) : (
               <motion.button
@@ -199,7 +199,7 @@ export default function Pricing() {
           </motion.div>
 
           {/* Commitment Pass (3 months) - Hidden when premium active */}
-          {!premium.active && (
+          {!premium?.active && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

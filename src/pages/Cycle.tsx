@@ -18,7 +18,7 @@ export default function Cycle() {
   const currentNiyyah = getCurrentNiyyah();
   
   // Generate reflection for completed previous cycle
-  const previousReflection = previous && previous.days.length === 7 && premium.active 
+  const previousReflection = previous && previous.days.length === 7 && premium?.active 
     ? generateCycleReflection(previous.days) 
     : null;
 
@@ -29,14 +29,14 @@ export default function Cycle() {
     const niyyahShownKey = `niyyah_shown_${user.id}_cycle_${cyclesCompleted}`;
     const hasShownBefore = localStorage.getItem(niyyahShownKey) === 'true';
     
-    if (premium.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownBefore) {
+    if (premium?.active && currentProgress === 0 && currentNiyyah === undefined && !hasShownBefore) {
       const timer = setTimeout(() => {
         setShowNiyyahModal(true);
         localStorage.setItem(niyyahShownKey, 'true');
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [premium.active, currentProgress, currentNiyyah, cyclesCompleted, user?.id, cycles.length]);
+  }, [premium?.active, currentProgress, currentNiyyah, cyclesCompleted, user?.id, cycles.length]);
 
   const handleNiyyahSubmit = (intention: string) => {
     setCurrentNiyyah(intention);
@@ -73,7 +73,7 @@ export default function Cycle() {
         </motion.div>
 
         {/* Show Niyyah if set (Premium feature) */}
-        {currentNiyyah && premium.active && (
+        {currentNiyyah && premium?.active && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

@@ -8,9 +8,8 @@ import { createPageUrl } from '@/utils/urls';
 import { generateWeeklyTrends, generateMonthlyTrends, analyzePrayerTrends, calculateCycleConsistency } from '@/utils/visualProgress';
 
 export default function Analytics() {
-  const { user } = useClerkAuth();
+  const { user, premiumStatus } = useClerkAuth();
   const navigate = useNavigate();
-  const [premiumStatus, setPremiumStatus] = useState({ active: false, expiresAt: null, activationCode: null });
   
   // Calculate basic stats for preview
   const checkins = readCheckins();
@@ -19,21 +18,14 @@ export default function Analytics() {
   const totalDays = entries.length;
   const completionRate = totalDays > 0 ? Math.round((completedDays / totalDays) * 100) : 0;
 
-  // Check premium status
-  useEffect(() => {
-    if (user?.id) {
-      setPremiumStatus(getPremiumStatus(user.id));
-    }
-  }, [user?.id]);
-
   // Premium visual progress data
-  const weeklyTrends = premiumStatus.active ? generateWeeklyTrends() : [];
-  const monthlyTrends = premiumStatus.active ? generateMonthlyTrends() : [];
-  const prayerTrends = premiumStatus.active ? analyzePrayerTrends() : [];
-  const cycleConsistency = premiumStatus.active ? calculateCycleConsistency() : null;
+  const weeklyTrends = premiumStatus?.active ? generateWeeklyTrends() : [];
+  const monthlyTrends = premiumStatus?.active ? generateMonthlyTrends() : [];
+  const prayerTrends = premiumStatus?.active ? analyzePrayerTrends() : [];
+  const cycleConsistency = premiumStatus?.active ? calculateCycleConsistency() : null;
 
   const exportCsv = () => {
-    if (!premiumStatus.active) {
+    if (!premiumStatus?.active) {
       // Free users: only last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
