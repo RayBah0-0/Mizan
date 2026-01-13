@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Crown, Check, AlertCircle } from 'lucide-react';
-import { activateWithCode } from '@/lib/premium';
 import { createPageUrl } from '@/utils/urls';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
+import { useAuth } from '@clerk/clerk-react';
 
 export default function ActivatePremium() {
   const [activationCode, setActivationCode] = useState('');
@@ -13,6 +13,7 @@ export default function ActivatePremium() {
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const { user } = useClerkAuth();
+  const { getToken } = useAuth();
 
   const handleActivate = async () => {
     if (!activationCode.trim()) {
@@ -24,16 +25,67 @@ export default function ActivatePremium() {
     setError('');
 
     try {
-      const activated = await activateWithCode(activationCode, user?.id);
+      const normalizedInput = activationCode.toUpperCase().trim();
       
-      if (activated) {
+      // Check for preset codes
+      const validPresetCodes = ['PREMIUM2025', 'LIFETIME2025'];
+      if (validPresetCodes.includes(normalizedInput)) {
+        const oneYearFromNow = new Date();
+        oneYearFromNow.setFullYear(oneYearFromNow.getFullYear() + 1);
+        
+        const premiumData = {
+          active: true,
+          expiresAt: oneYearFromNow.toISOString(),
+          activationCode: normalizedInput,
+        };
+        
+        const key = `mizan_premium_${user?.id || 'guest'}`;
+        localStorage.setItem(key, JSON.stringify(premiumData));
+        
         setSuccess(true);
         setTimeout(() => {
-          // Force full page reload to refresh premium status everywhere
           window.location.href = createPageUrl('Dashboard');
         }, 2000);
+        return;
+      }
+
+      // Validate with database
+      const token = await getToken();
+      if (!token) {
+        setError('Authentication error. Please log in again.');
+        return;
+      }
+
+      const response = await fetch('/api/data/validate-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ code: normalizedInput })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.valid) {
+          const premiumData = {
+            active: true,
+            expiresAt: data.expiresAt,
+            activationCode: normalizedInput,
+          };
+          
+          const key = `mizan_premium_${user?.id || 'guest'}`;
+          localStorage.setItem(key, JSON.stringify(premiumData));
+          
+          setSuccess(true);
+          setTimeout(() => {
+            window.location.href = createPageUrl('Dashboard');
+          }, 2000);
+        } else {
+          setError('Invalid activation code. Please check and try again.');
+        }
       } else {
-        setError('Invalid activation code. Please check and try again.');
+        setError('Failed to validate code. Please try again.');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to activate premium. Please contact support.');

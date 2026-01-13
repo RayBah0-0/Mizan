@@ -112,7 +112,7 @@ export function getPremiumStatus(userId?: string): PremiumStatus {
  * Called by: Stripe success, manual code entry, redeem URL
  * Returns: activation code for backup
  */
-export async function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly', forceNewCode: boolean = false): Promise<string> {
+export async function activatePremium(userId?: string, plan: 'monthly' | 'commitment' | 'lifetime' = 'monthly', forceNewCode: boolean = false, clerkToken?: string): Promise<string> {
   let expiresAt: string | null;
   
   if (plan === 'lifetime') {
@@ -141,20 +141,19 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
   writePremiumData(premiumData, userId);
 
   // Store activation code in database for cross-device access
-  try {
-    const token = localStorage.getItem('clerk_token');
-    if (token) {
+  if (clerkToken) {
+    try {
       await fetch('/api/data/activation-code', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${clerkToken}`
         },
         body: JSON.stringify({ code, plan, expiresAt })
       });
+    } catch (error) {
+      console.error('Failed to store activation code in database:', error);
     }
-  } catch (error) {
-    console.error('Failed to store activation code in database:', error);
   }
   
   return code;

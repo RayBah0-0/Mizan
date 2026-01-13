@@ -8,6 +8,7 @@ import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
 import { activatePremium, migrateOldPremiumData, getPremiumStatus } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
+import { useAuth } from '@clerk/clerk-react';
 import { isQuietModeEnabled } from '@/utils/quietMode';
 import { generateMirrorInsights } from '@/utils/mirrorInsights';
 import { detectRelapse } from '@/utils/relapseRecovery';
@@ -39,6 +40,7 @@ const AnimatedCounter = ({ value }: { value: number }) => {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { user } = useClerkAuth();
+  const { getToken } = useAuth();
   const { cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const [showPremiumActivated, setShowPremiumActivated] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
@@ -147,7 +149,8 @@ export default function Dashboard() {
       const plan = planType || 'monthly';
       
       // Stripe success - activate premium with correct plan and generate NEW code
-      activatePremium(user.id, plan, true).then((code) => {
+      getToken().then(async (token) => {
+        const code = await activatePremium(user.id, plan, true, token || undefined);
         setActivationCode(code);
         setPurchasedPlan(plan);
         setShowPremiumActivated(true);
@@ -161,7 +164,7 @@ export default function Dashboard() {
       url.searchParams.delete('plan');
       window.history.replaceState({}, '', url.toString());
     }
-  }, [user?.id]);
+  }, [user?.id, getToken]);
 
   // Migrate old premium data when user changes
   useEffect(() => {
