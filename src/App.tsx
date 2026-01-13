@@ -13,6 +13,10 @@ import ActivatePremium from './pages/ActivatePremium';
 import ThankYou from './pages/ThankYou';
 import RedeemPremium from './pages/RedeemPremium';
 import Cycle from './pages/Cycle';
+import ModDashboard from './pages/ModDashboard';
+import ModUsersList from './pages/ModUsersList';
+import ModUserDetail from './pages/ModUserDetail';
+import ModAuditLogs from './pages/ModAuditLogs';
 import UserNotRegisteredError from './components/UserNotRegisteredError';
 import { useClerkAuth } from './contexts/ClerkAuthContext';
 import { syncFromServer, readCheckins } from './utils/storage';
@@ -68,6 +72,13 @@ export default function App() {
           <Route path="/thank-you" element={<ThankYou />} />
           <Route path="/getpremium-:token" element={<RedeemPremium />} />
           <Route path="/unauthorized" element={<UserNotRegisteredError />} />
+          
+          {/* Mod Routes */}
+          <Route path="/mod" element={<ModDashboard />} />
+          <Route path="/mod/users" element={<ModUsersList />} />
+          <Route path="/mod/users/:userId" element={<ModUserDetail />} />
+          <Route path="/mod/audit" element={<ModAuditLogs />} />
+          
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </ErrorBoundary>

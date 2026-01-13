@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { initDatabase } from './database.js';
 import authRoutes from './routes/auth.js';
 import dataRoutes from './routes/data.js';
+import modRoutes from './routes/mod.js';
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ initDatabase();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/mod', modRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import { ClerkProvider } from '@clerk/clerk-react';
 import { ClerkAuthProvider } from './contexts/ClerkAuthContext';
+import { ModProvider } from './contexts/ModContext';
 import App from './App';
 import './index.css';
 import { readSettings } from './utils/storage';
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <ClerkProvider publishableKey={clerkPubKey}>
       <BrowserRouter>
         <ClerkAuthProvider>
-          <App />
+          <ModProvider>
+            <App />
+          </ModProvider>
         </ClerkAuthProvider>
       </BrowserRouter>
     </ClerkProvider>
