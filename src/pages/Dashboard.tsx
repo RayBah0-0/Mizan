@@ -15,6 +15,7 @@ import { shouldShowGuidedPrompt, GuidedPrompt } from '@/utils/guidedPrompts';
 import RecoveryModal from '@/components/RecoveryModal';
 import GuidedPromptModal from '@/components/GuidedPromptModal';
 import { NiyyahModal } from '@/components/NiyyahModal';
+import PremiumWelcomeModal from '@/components/PremiumWelcomeModal';
 
 function formatDateLabel(dateKey: string): string {
   if (!dateKey) return '—';
@@ -48,6 +49,8 @@ export default function Dashboard() {
   const [guidedPrompt, setGuidedPrompt] = useState<GuidedPrompt | null>(null);
   const [showGuidedPrompt, setShowGuidedPrompt] = useState(false);
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);
+  const [showPremiumWelcome, setShowPremiumWelcome] = useState(false);
+  const [welcomePlan, setWelcomePlan] = useState<'yearly' | 'commitment' | 'lifetime' | 'monthly'>('monthly');
   const currentNiyyah = getCurrentNiyyah();
 
   // Check quiet mode on mount
@@ -137,14 +140,20 @@ export default function Dashboard() {
       urlParams.has('session_id');
 
     if (hasStripeSuccess) {
-      const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
+      const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | 'yearly' | null;
       const plan = planType || 'monthly';
+      
+      // Set plan for welcome modal
+      setWelcomePlan(plan);
       
       // Activate premium on server
       activatePremium(user.id, plan).then(success => {
         if (success) {
           // Refresh premium status from server
           refreshPremium();
+          
+          // Show welcome modal
+          setShowPremiumWelcome(true);
         } else {
           alert('Failed to activate premium. Please contact support.');
         }
@@ -227,6 +236,36 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#0a0a0b] text-[#c4c4c6] px-6 py-12">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="max-w-2xl mx-auto">
+
+        {/* Premium Welcome Modal */}
+        <PremiumWelcomeModal
+          isOpen={showPremiumWelcome}
+          onClose={() => setShowPremiumWelcome(false)}
+          plan={welcomePlan}
+        />
+
+        {/* Recovery Modal */}
+        <RecoveryModal
+          isOpen={showRecoveryModal}
+          onClose={handleRecoveryModalClose}
+          relapseInfo={relapseDetection}
+        />
+
+        {/* Guided Prompt Modal */}
+        {guidedPrompt && (
+          <GuidedPromptModal
+            isOpen={showGuidedPrompt}
+            onClose={handleGuidedPromptClose}
+            prompt={guidedPrompt}
+          />
+        )}
+
+        {/* Niyyah Modal */}
+        <NiyyahModal 
+          isOpen={showNiyyahModal}
+          onClose={() => setShowNiyyahModal(false)}
+          onSubmit={handleNiyyahSubmit}
+        />
 
         <motion.div 
           className="mb-12"
@@ -514,30 +553,6 @@ export default function Dashboard() {
           </motion.div>
         </motion.div>
       </motion.div>
-
-      {/* Niyyah Modal */}
-      <NiyyahModal 
-        isOpen={showNiyyahModal}
-        onClose={() => setShowNiyyahModal(false)}
-        onSubmit={handleNiyyahSubmit}
-      />
-
-      {/* Recovery Modal */}
-      <RecoveryModal
-        isOpen={showRecoveryModal}
-        onClose={handleRecoveryModalClose}
-        consecutiveMisses={relapseDetection.consecutiveMisses}
-        message={relapseDetection.message}
-      />
-
-      {/* Guided Prompt Modal */}
-      {guidedPrompt && (
-        <GuidedPromptModal
-          isOpen={showGuidedPrompt}
-          onClose={handleGuidedPromptClose}
-          prompt={guidedPrompt}
-        />
-      )}
     </div>
   );
 }
