@@ -6,7 +6,7 @@ import { createPageUrl } from '@/utils/urls';
 import { readCheckins, getTodayKey, countCompletedCategories, readLeaderboard, readUser, readPointsLog, writeUser, updateLeaderboardUsername } from '@/utils/storage';
 import { useCycle } from '@/hooks/useCycle';
 import { CircleProgress } from '@/components/CircleProgress';
-import { activatePremium, migrateOldPremiumData, getPremiumStatus } from '@/lib/premium';
+import { activatePremium, migrateOldPremiumData, getPremiumStatus, getPremiumStatusSync } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 import { useAuth } from '@clerk/clerk-react';
 import { isQuietModeEnabled } from '@/utils/quietMode';
@@ -48,7 +48,14 @@ export default function Dashboard() {
   const [purchasedPlan, setPurchasedPlan] = useState<'monthly' | 'commitment' | 'lifetime'>('monthly');
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [quietMode, setQuietMode] = useState(false);
-  const premium = getPremiumStatus(user?.id);
+  const [premium, setPremium] = useState(getPremiumStatusSync(user?.id));
+  
+  // Refresh premium status from database on mount
+  useEffect(() => {
+    if (user?.id && getToken) {
+      getPremiumStatus(user.id, getToken).then(setPremium);
+    }
+  }, [user?.id, getToken]);
   const mirrorInsights = useMemo(() => premium.active ? generateMirrorInsights(2) : [], [premium.active]);
   const relapseDetection = useMemo(() => detectRelapse(), []);
   const [showRecoveryModal, setShowRecoveryModal] = useState(false);

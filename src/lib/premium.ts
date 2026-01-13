@@ -80,8 +80,37 @@ function writePremiumData(data: PremiumStatus, userId?: string): void {
  * This is the ONLY function UI components should call
  * Returns: { active: boolean, expiresAt: string | null, activationCode: string | null }
  */
-export function getPremiumStatus(userId?: string): PremiumStatus {
+export async function getPremiumStatus(userId?: string, getToken?: () => Promise<string | null>): Promise<PremiumStatus> {
   try {
+    // Try to get from database first if we have auth
+    if (getToken) {
+      try {
+        const token = await getToken();
+        if (token) {
+          const response = await fetch('/api/data/premium-status', {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            // Store in localStorage for offline access
+            const premiumData = {
+              active: data.active,
+              expiresAt: data.expiresAt,
+              activationCode: null
+            };
+            writePremiumData(premiumData, userId);
+            return premiumData;
+          }
+        }
+      } catch (error) {
+        console.warn('Failed to fetch premium from database, using localStorage:', error);
+      }
+    }
+
+    // Fallback to localStorage
     const data = readPremiumData(userId);
     
     if (!data) {
@@ -95,6 +124,33 @@ export function getPremiumStatus(userId?: string): PremiumStatus {
       
       if (now > expiry) {
         // Expired - clear and return inactive
+        clearPremiumData(userId);
+        return { active: false, expiresAt: null, activationCode: null };
+      }
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error getting premium status:', error);
+    return { active: false, expiresAt: null, activationCode: null };
+  }
+}
+
+// Synchronous version for backwards compatibility
+export function getPremiumStatusSync(userId?: string): PremiumStatus {
+  try {
+    const data = readPremiumData(userId);
+    
+    if (!data) {
+      return { active: false, expiresAt: null, activationCode: null };
+    }
+
+    // Auto-expire check
+    if (data.expiresAt) {
+      const expiry = new Date(data.expiresAt);
+      const now = new Date();
+      
+      if (now > expiry) {
         clearPremiumData(userId);
         return { active: false, expiresAt: null, activationCode: null };
       }
@@ -128,35 +184,32 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
     expiresAt = oneYearFromNow.toISOString();
   }
 
-  // Generate new code for Stripe purchases, or preserve existing for other flows
-  const existing = readPremiumData(userId);
-  const code = forceNewCode ? generateActivationCode(plan) : (existing?.activationCode || generateActivationCode(plan));
-
   const premiumData: PremiumStatus = {
     active: true,
     expiresAt,
-    activationCode: code,
+    activationCode: null,
   };
 
+  // Store in localStorage for immediate access
   writePremiumData(premiumData, userId);
 
-  // Store activation code in database for cross-device access
+  // Store in database for cross-device access
   if (clerkToken) {
     try {
-      await fetch('/api/data/activation-code', {
+      await fetch('/api/data/set-premium', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${clerkToken}`
         },
-        body: JSON.stringify({ code, plan, expiresAt })
+        body: JSON.stringify({ plan, expiresAt })
       });
     } catch (error) {
-      console.error('Failed to store activation code in database:', error);
+      console.error('Failed to store premium in database:', error);
     }
   }
   
-  return code;
+  return 'ACTIVATED'; // Return simple confirmation instead of code
 }
 
 /**

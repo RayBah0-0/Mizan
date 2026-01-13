@@ -617,4 +617,85 @@ router.post('/validate-code', authMiddleware, async (req: Request, res: Response
   }
 });
 
+// Get premium status from database
+router.get('/premium-status', authMiddleware, async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+
+  try {
+    const db = getDB();
+    const result = await db.execute({
+      sql: 'SELECT premium_until FROM users WHERE clerk_id = ?',
+      args: [userId]
+    });
+
+    if (result.rows.length > 0) {
+      const row = result.rows[0] as any;
+      const premiumUntil = row.premium_until;
+      
+      if (premiumUntil) {
+        const expiryDate = new Date(premiumUntil);
+        const now = new Date();
+        const active = expiryDate > now || premiumUntil === 'lifetime';
+        
+        res.json({
+          active,
+          expiresAt: premiumUntil === 'lifetime' ? null : premiumUntil
+        });
+      } else {
+        res.json({ active: false, expiresAt: null });
+      }
+    } else {
+      // User doesn't exist in DB yet, create entry
+      await db.execute({
+        sql: 'INSERT INTO users (clerk_id, username, created_at) VALUES (?, ?, ?)',
+        args: [userId, userId, new Date().toISOString()]
+      });
+      res.json({ active: false, expiresAt: null });
+    }
+  } catch (error) {
+    console.error('Error getting premium status:', error);
+    res.status(500).json({ error: 'Failed to get premium status' });
+  }
+});
+
+// Set premium status in database
+router.post('/set-premium', authMiddleware, async (req: Request, res: Response) => {
+  const userId = (req as any).userId;
+  const { plan, expiresAt } = req.body;
+
+  if (!plan) {
+    return res.status(400).json({ error: 'Plan is required' });
+  }
+
+  try {
+    const db = getDB();
+    
+    // Ensure user exists
+    const userCheck = await db.execute({
+      sql: 'SELECT id FROM users WHERE clerk_id = ?',
+      args: [userId]
+    });
+
+    if (userCheck.rows.length === 0) {
+      // Create user if doesn't exist
+      await db.execute({
+        sql: 'INSERT INTO users (clerk_id, username, created_at) VALUES (?, ?, ?)',
+        args: [userId, userId, new Date().toISOString()]
+      });
+    }
+
+    // Update premium status
+    const premiumUntil = plan === 'lifetime' ? 'lifetime' : expiresAt;
+    await db.execute({
+      sql: 'UPDATE users SET premium_until = ?, premium_started_at = ? WHERE clerk_id = ?',
+      args: [premiumUntil, new Date().toISOString(), userId]
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error setting premium:', error);
+    res.status(500).json({ error: 'Failed to set premium' });
+  }
+});
+
 export default router;
