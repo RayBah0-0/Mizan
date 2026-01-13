@@ -95,10 +95,10 @@ export default function PremiumWelcomeModal({ isOpen, onClose, plan }: PremiumWe
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#2d4a3a]/30 border border-[#3dd98f]/50 rounded-full"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-[#3dd98f] border border-[#3dd98f] rounded-full"
                 >
-                  <Sparkles className="w-4 h-4 text-[#3dd98f]" />
-                  <span className="text-xs font-semibold text-[#3dd98f] uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-[#0a0a0a]" />
+                  <span className="text-xs font-semibold text-[#0a0a0a] uppercase tracking-wider">
                     {content.subtitle}
                   </span>
                 </motion.div>
