@@ -128,8 +128,7 @@ const RANK_INFO: Record<RankTitle, { definition: string; nextRank?: RankTitle; n
 };
 
 export default function Status() {
-  const { user } = useClerkAuth();
-  const premium = getPremiumStatus(user?.id);
+  const { user, premiumStatus } = useClerkAuth();
   const quietMode = isQuietModeEnabled();
   const { cyclesCompleted, currentProgress } = useCycle();
   const missions = React.useMemo(() => listMissions(readMissionsProgress()), []);

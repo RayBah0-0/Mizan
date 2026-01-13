@@ -6,14 +6,12 @@ import { useCycle } from '@/hooks/useCycle';
 import { CycleGrid } from '@/components/CycleGrid';
 import { createPageUrl } from '@/utils/urls';
 import { NiyyahModal } from '@/components/NiyyahModal';
-import { getPremiumStatus } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 import { generateCycleReflection } from '@/utils/cycleReflection';
 
 export default function Cycle() {
   const navigate = useNavigate();
-  const { user } = useClerkAuth();
-  const premium = getPremiumStatus(user?.id);
+  const { user, premiumStatus: premium } = useClerkAuth();
   const { cycles, cyclesCompleted, currentProgress, setCurrentNiyyah, getCurrentNiyyah } = useCycle();
   const previous = cycles.length > 1 ? cycles[cycles.length - 2] : null;
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);

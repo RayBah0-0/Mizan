@@ -4,7 +4,6 @@ import { TrendingUp, Calendar, Target, Lock, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { readCheckins } from '@/utils/storage';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
-import { getPremiumStatus } from '@/lib/premium';
 import { createPageUrl } from '@/utils/urls';
 import { generateWeeklyTrends, generateMonthlyTrends, analyzePrayerTrends, calculateCycleConsistency } from '@/utils/visualProgress';
 

@@ -16,7 +16,6 @@ import {
   setNotificationsEnabled,
   showNotification
 } from '@/utils/notifications';
-import { getPremiumStatus, clearPremiumData, migrateOldPremiumData } from '@/lib/premium';
 
 // Custom animated toggle switch
 const AnimatedToggle = ({ checked, onChange }: { checked: boolean; onChange: (val: boolean) => void }) => (
@@ -54,10 +53,7 @@ export default function Settings() {
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
   const navigate = useNavigate();
-  const { user, signOut } = useClerkAuth();
-
-  // Get premium status - single source of truth
-  const premium = getPremiumStatus(user?.id);
+  const { user, signOut, premiumStatus: premium } = useClerkAuth();
 
   useEffect(() => {
     // Check notification status

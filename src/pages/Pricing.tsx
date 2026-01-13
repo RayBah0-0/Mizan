@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Check, Zap, Crown, TrendingUp, BarChart3, Lock, Mail, FileText, Clock, CreditCard, X, Key } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
-import { getPremiumStatus, activateWithCode, migrateOldPremiumData } from '@/lib/premium';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
 const features = {
@@ -41,13 +40,10 @@ const features = {
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const { user } = useClerkAuth();
+  const { user, premiumStatus: premium } = useClerkAuth();
   const [showCodeInput, setShowCodeInput] = useState(false);
   const [activationCode, setActivationCode] = useState('');
   const [codeError, setCodeError] = useState('');
-  
-  // Get premium status - single source of truth
-  const premium = getPremiumStatus(user?.id);
 
   // Migrate old premium data when user changes
   useEffect(() => {
@@ -59,23 +55,6 @@ export default function Pricing() {
   const handleUpgrade = () => {
     // Open payment link in new tab
     window.open('https://buy.stripe.com/5kQbJ109xauE2ONelLfUQ06', '_blank');
-  };
-
-  const handleActivateWithCode = () => {
-    if (!activationCode.trim()) {
-      setCodeError('Please enter your activation code');
-      return;
-    }
-
-    if (activateWithCode(activationCode.trim(), user?.id)) {
-      setCodeError('');
-      setShowCodeInput(false);
-      alert('Premium activated successfully!');
-      // Force refresh to show new status
-      window.location.reload();
-    } else {
-      setCodeError('Invalid activation code. Please check and try again.');
-    }
   };
 
   const handleRenewal = () => {
@@ -260,15 +239,6 @@ export default function Pricing() {
                         <p className="text-red-400 text-xs mt-1">{codeError}</p>
                       )}
                     </div>
-                    <motion.button
-                      onClick={handleActivateWithCode}
-                      whileHover={{ scale: 1.05, backgroundColor: '#4eeaa0', boxShadow: '0 8px 25px rgba(61,217,143,0.4)' }}
-                      whileTap={{ scale: 0.95 }}
-                      transition={{ duration: 0.2 }}
-                      className="w-full py-2 bg-[#3dd98f] text-[#0a0a0a] font-medium text-xs transition-colors"
-                    >
-                      Activate Premium
-                    </motion.button>
                   </motion.div>
                 )}
               </div>

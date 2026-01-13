@@ -1,5 +1,6 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
+import { getPremiumStatus, clearPremiumCache, PremiumStatus } from '../lib/premium';
 
 interface User {
   id: string;
@@ -11,6 +12,9 @@ interface AuthContextType {
   user: User | null;
   signOut: () => Promise<void>;
   isLoading: boolean;
+  premiumStatus: PremiumStatus;
+  premiumLoading: boolean;
+  refreshPremium: () => Promise<void>;
 }
 
 const ClerkAuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,6 +22,9 @@ const ClerkAuthContext = createContext<AuthContextType | undefined>(undefined);
 export function ClerkAuthProvider({ children }: { children: ReactNode }) {
   const { user: clerkUser, isLoaded } = useUser();
   const { signOut: clerkSignOut } = useClerk();
+  
+  const [premiumStatus, setPremiumStatus] = useState<PremiumStatus>({ active: false, expiresAt: null });
+  const [premiumLoading, setPremiumLoading] = useState(true);
 
   const user: User | null = clerkUser
     ? {
@@ -27,7 +34,37 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
       }
     : null;
 
+  // Fetch premium status on login/refresh
+  const refreshPremium = async () => {
+    if (!user?.id) {
+      setPremiumStatus({ active: false, expiresAt: null });
+      setPremiumLoading(false);
+      return;
+    }
+
+    setPremiumLoading(true);
+    try {
+      const status = await getPremiumStatus(user.id);
+      setPremiumStatus(status);
+    } catch (error) {
+      console.error('Failed to fetch premium status:', error);
+      setPremiumStatus({ active: false, expiresAt: null });
+    } finally {
+      setPremiumLoading(false);
+    }
+  };
+
+  // Fetch premium when user logs in or changes
+  useEffect(() => {
+    if (isLoaded) {
+      refreshPremium();
+    }
+  }, [user?.id, isLoaded]);
+
   const signOut = async () => {
+    if (user?.id) {
+      clearPremiumCache(user.id);
+    }
     await clerkSignOut();
   };
 
@@ -35,6 +72,9 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
     user,
     signOut,
     isLoading: !isLoaded,
+    premiumStatus,
+    premiumLoading,
+    refreshPremium,
   };
 
   return (
