@@ -96,12 +96,6 @@ export default function Settings() {
     });
   }, [user]);
 
-  // Migrate old premium data when user changes
-  useEffect(() => {
-    if (user?.id) {
-      migrateOldPremiumData(user.id);
-    }
-  }, [user?.id]);
 
   // Sync username from Clerk to leaderboard on every user change
   useEffect(() => {

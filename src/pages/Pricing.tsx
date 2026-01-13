@@ -45,13 +45,6 @@ export default function Pricing() {
   const [activationCode, setActivationCode] = useState('');
   const [codeError, setCodeError] = useState('');
 
-  // Migrate old premium data when user changes
-  useEffect(() => {
-    if (user?.id) {
-      migrateOldPremiumData(user.id);
-    }
-  }, [user?.id]);
-
   const handleUpgrade = () => {
     // Open payment link in new tab
     window.open('https://buy.stripe.com/5kQbJ109xauE2ONelLfUQ06', '_blank');
