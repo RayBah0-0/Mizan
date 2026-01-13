@@ -155,12 +155,16 @@ export default function Dashboard() {
       const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
       const plan = planType || 'monthly';
       
-      // Stripe success - activate premium with correct plan and generate NEW code
+      // Stripe success - activate premium with correct plan
       getToken().then(async (token) => {
         const code = await activatePremium(user.id, plan, true, token || undefined);
         setActivationCode(code);
         setPurchasedPlan(plan);
         setShowPremiumActivated(true);
+        
+        // Refresh premium status from database
+        const updatedPremium = await getPremiumStatus(user.id, getToken);
+        setPremium(updatedPremium);
       });
 
       // Clean URL

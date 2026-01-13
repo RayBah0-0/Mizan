@@ -196,7 +196,7 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
   // Store in database for cross-device access
   if (clerkToken) {
     try {
-      await fetch('/api/data/set-premium', {
+      const response = await fetch('/api/data/set-premium', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -204,9 +204,20 @@ export async function activatePremium(userId?: string, plan: 'monthly' | 'commit
         },
         body: JSON.stringify({ plan, expiresAt })
       });
+      
+      if (!response.ok) {
+        const error = await response.text();
+        console.error('Failed to store premium in database:', error);
+        throw new Error('Database storage failed');
+      }
+      
+      console.log('Premium stored in database successfully');
     } catch (error) {
       console.error('Failed to store premium in database:', error);
+      throw error; // Re-throw so caller knows it failed
     }
+  } else {
+    console.warn('No Clerk token provided, premium not stored in database');
   }
   
   return 'ACTIVATED'; // Return simple confirmation instead of code
