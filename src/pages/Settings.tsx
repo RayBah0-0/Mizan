@@ -47,7 +47,6 @@ export default function Settings() {
   const [focusPhrase, setFocusPhrase] = useState('Consistency is earned.');
   const [customCategories, setCustomCategories] = useState('');
   const [featureFlags, setFeatureFlags] = useState({ prioritySupport: false, earlyAccess: false, supportChannel: 'discord' as 'discord' | 'email' | 'none' });
-  const [showPremiumKey, setShowPremiumKey] = useState(false);
   const [premiumKeyCopyStatus, setPremiumKeyCopyStatus] = useState<'idle' | 'copied'>('idle');
   const [quietMode, setQuietMode] = useState(false);
   const [username, setUsername] = useState('');

@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Check, Zap, Crown, TrendingUp, BarChart3, Lock, Mail, FileText, Clock, CreditCard, X, Key } from 'lucide-react';
+import { Check, Zap, Crown, TrendingUp, BarChart3, Lock, Mail, FileText, Clock, CreditCard, X } from 'lucide-react';
 import { createPageUrl } from '@/utils/urls';
 import { useClerkAuth } from '@/contexts/ClerkAuthContext';
 
@@ -41,9 +41,6 @@ const features = {
 export default function Pricing() {
   const navigate = useNavigate();
   const { user, premiumStatus: premium } = useClerkAuth();
-  const [showCodeInput, setShowCodeInput] = useState(false);
-  const [activationCode, setActivationCode] = useState('');
-  const [codeError, setCodeError] = useState('');
 
   const handleUpgrade = () => {
     // Open payment link in new tab
@@ -198,43 +195,6 @@ export default function Pricing() {
                 <Zap className="w-4 h-4" />
                 Reflect Intentionally
               </motion.button>
-            )}
-
-            {!premium.active && (
-              <div className="mt-3">
-                <motion.button
-                  onClick={() => setShowCodeInput(!showCodeInput)}
-                  whileHover={{ scale: 1.02, backgroundColor: '#2a2a2d' }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.2 }}
-                  className="w-full py-2.5 bg-[#1a1a1d] border border-dashed border-[#3dd98f]/50 text-[#3dd98f] font-medium text-xs tracking-wide transition-all duration-300 flex items-center justify-center gap-2"
-                >
-                  <Key className="w-3 h-3" />
-                  Already paid? Activate →
-                </motion.button>
-
-                {showCodeInput && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-3 space-y-2"
-                  >
-                    <div>
-                      <input
-                        type="text"
-                        value={activationCode}
-                        onChange={(e) => setActivationCode(e.target.value)}
-                        placeholder="Enter code (e.g., PREMIUM2025)"
-                        className="w-full px-3 py-2 bg-[#0a0a0b] border border-[#1a1a1d] text-[#c4c4c6] text-xs placeholder-[#6a6a6d] focus:border-[#3dd98f] focus:outline-none transition-colors"
-                      />
-                      {codeError && (
-                        <p className="text-red-400 text-xs mt-1">{codeError}</p>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </div>
             )}
           </motion.div>
 
