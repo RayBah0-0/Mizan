@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useClerkAuth } from './ClerkAuthContext';
+import { API_URL } from '../utils/api';
 
 // ⚠️ CRITICAL: This context is for UI convenience ONLY.
 // NEVER use ModContext to authorize actions.
@@ -43,7 +44,7 @@ export function ModProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const response = await fetch('/api/mod/check-status', {
+      const response = await fetch(`${API_URL}/mod/check-status`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
