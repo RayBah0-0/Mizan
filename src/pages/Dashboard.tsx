@@ -155,16 +155,30 @@ export default function Dashboard() {
       const planType = urlParams.get('plan') as 'monthly' | 'commitment' | 'lifetime' | null;
       const plan = planType || 'monthly';
       
+      console.log('Processing premium activation:', { plan, userId: user.id });
+      
       // Stripe success - activate premium with correct plan
       getToken().then(async (token) => {
-        const code = await activatePremium(user.id, plan, true, token || undefined);
-        setActivationCode(code);
-        setPurchasedPlan(plan);
-        setShowPremiumActivated(true);
-        
-        // Refresh premium status from database
-        const updatedPremium = await getPremiumStatus(user.id, getToken);
-        setPremium(updatedPremium);
+        try {
+          console.log('Token obtained:', token ? 'yes' : 'no');
+          const code = await activatePremium(user.id, plan, true, token || undefined);
+          console.log('Premium activated successfully');
+          
+          setActivationCode(code);
+          setPurchasedPlan(plan);
+          setShowPremiumActivated(true);
+          
+          // Refresh premium status from database
+          const updatedPremium = await getPremiumStatus(user.id, getToken);
+          console.log('Updated premium status:', updatedPremium);
+          setPremium(updatedPremium);
+        } catch (error) {
+          console.error('Failed to activate premium:', error);
+          alert('Failed to activate premium. Please contact support with this error: ' + (error as Error).message);
+        }
+      }).catch(err => {
+        console.error('Failed to get token:', err);
+        alert('Authentication error. Please log in again.');
       });
 
       // Clean URL
