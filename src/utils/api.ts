@@ -233,3 +233,120 @@ export async function redeemPremiumToken(token: string) {
   return response.json();
 }
 
+// ===== MOD API =====
+
+export async function checkModStatus() {
+  const response = await fetch(`${API_URL}/mod/check-status`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to check mod status');
+  }
+
+  return response.json();
+}
+
+export async function getModUsers(page: number = 1, limit: number = 50, search: string = '') {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(search && { search })
+  });
+
+  const response = await fetch(`${API_URL}/mod/users/list?${params}`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get users list');
+  }
+
+  return response.json();
+}
+
+export async function getModUserDetails(userId: number) {
+  const response = await fetch(`${API_URL}/mod/users/${userId}/details`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get user details');
+  }
+
+  return response.json();
+}
+
+export async function getModUserActivity(userId: number, limit: number = 30) {
+  const response = await fetch(`${API_URL}/mod/users/${userId}/activity?limit=${limit}`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get user activity');
+  }
+
+  return response.json();
+}
+
+export async function grantPremium(userId: number, reason: string, durationDays: number = 365) {
+  const response = await fetch(`${API_URL}/mod/users/${userId}/grant-premium`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ reason, duration_days: durationDays })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to grant premium');
+  }
+
+  return response.json();
+}
+
+export async function revokePremium(userId: number, reason: string) {
+  const response = await fetch(`${API_URL}/mod/users/${userId}/revoke-premium`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ reason })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error || 'Failed to revoke premium');
+  }
+
+  return response.json();
+}
+
+export async function getModUserPremiumHistory(userId: number) {
+  const response = await fetch(`${API_URL}/mod/users/${userId}/premium-history`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get premium history');
+  }
+
+  return response.json();
+}
+
+export async function getModAuditLogs(page: number = 1, limit: number = 50, actionType?: string) {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(actionType && { action_type: actionType })
+  });
+
+  const response = await fetch(`${API_URL}/mod/audit/logs?${params}`, {
+    headers: await getAuthHeaders()
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get audit logs');
+  }
+
+  return response.json();
+}
+
+
