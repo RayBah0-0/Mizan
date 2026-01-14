@@ -34,6 +34,42 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
       }
     : null;
 
+  // Ensure user exists in database (create if not exists)
+  const ensureUserInDatabase = async () => {
+    if (!clerkUser?.id) return;
+
+    try {
+      // Send user info to backend to update/create profile
+      const email = clerkUser.primaryEmailAddress?.emailAddress;
+      const username = clerkUser.username || clerkUser.firstName || clerkUser.primaryEmailAddress?.emailAddress?.split('@')[0];
+      
+      if (email || username) {
+        await fetch('/api/data/update-profile', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${await clerkUser.getToken()}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email, username }),
+        });
+      }
+
+      // Also check premium status
+      const response = await fetch('/api/data/premium-status', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${await clerkUser.getToken()}`,
+        },
+      });
+
+      if (response.status === 404) {
+        console.log('User being created in database:', clerkUser.id);
+      }
+    } catch (error) {
+      console.error('Error ensuring user exists:', error);
+    }
+  };
+
   // Fetch premium status on login/refresh
   const refreshPremium = async () => {
     if (!user?.id) {
@@ -54,10 +90,15 @@ export function ClerkAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Fetch premium when user logs in or changes
+  // Ensure user exists in DB and fetch premium when user logs in
   useEffect(() => {
-    if (isLoaded) {
-      refreshPremium();
+    if (isLoaded && clerkUser) {
+      ensureUserInDatabase().then(() => {
+        refreshPremium();
+      });
+    } else if (isLoaded && !clerkUser) {
+      setPremiumStatus({ active: false, expiresAt: null });
+      setPremiumLoading(false);
     }
   }, [user?.id, isLoaded]);
 

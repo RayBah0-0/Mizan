@@ -6,10 +6,42 @@ import ConfettiBurst from './ConfettiBurst';
 interface PremiumWelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  plan: 'yearly' | 'commitment' | 'lifetime' | 'monthly';
+  plan: 'yearly' | 'commitment' | 'lifetime' | 'monthly' | 'admin';
+  adminGrantInfo?: {
+    duration_days: number;
+    note: string;
+  };
 }
 
-const getPlanMessage = (plan: string) => {
+const getPlanMessage = (plan: string, adminGrantInfo?: { duration_days: number; note: string }) => {
+  if (plan === 'admin' && adminGrantInfo) {
+    const durationText = adminGrantInfo.duration_days === 365 
+      ? '1 Year'
+      : adminGrantInfo.duration_days === 30
+      ? '1 Month'
+      : adminGrantInfo.duration_days === 90
+      ? '90 Days'
+      : `${adminGrantInfo.duration_days} Days`;
+
+    return {
+      title: 'Premium Access Granted by Admin',
+      subtitle: 'Admin Grant',
+      message: adminGrantInfo.note || 'An administrator has granted you Premium access.',
+      affirmation: 'Your premium features are now active. Make the most of this opportunity!',
+      duration: durationText
+    };
+  }
+  
+  if (plan === 'admin') {
+    return {
+      title: 'Premium Access Granted',
+      subtitle: 'Admin Grant',
+      message: 'You have been granted Premium access by an administrator.',
+      affirmation: 'Your premium features are now active.',
+      duration: 'Active'
+    };
+  }
+
   switch (plan) {
     case 'lifetime':
       return {
@@ -46,8 +78,8 @@ const getPlanMessage = (plan: string) => {
   }
 };
 
-export default function PremiumWelcomeModal({ isOpen, onClose, plan }: PremiumWelcomeModalProps) {
-  const content = getPlanMessage(plan);
+export default function PremiumWelcomeModal({ isOpen, onClose, plan, adminGrantInfo }: PremiumWelcomeModalProps) {
+  const content = getPlanMessage(plan, adminGrantInfo);
 
   return (
     <AnimatePresence>

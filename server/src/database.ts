@@ -52,6 +52,7 @@ export async function initDatabase() {
   await tryExec('ALTER TABLE users ADD COLUMN premium_started_at DATETIME');
   await tryExec('ALTER TABLE users ADD COLUMN commitment_ends_at DATETIME');
   await tryExec('ALTER TABLE users ADD COLUMN schema_version INTEGER DEFAULT 1');
+  await tryExec('ALTER TABLE users ADD COLUMN pending_admin_grant TEXT');
 
   // Checkins table - stores daily accountability data
   await exec(`
@@ -167,6 +168,33 @@ export async function initDatabase() {
       plan TEXT NOT NULL,
       expires_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  // Mod users table - moderator access control
+  await exec(`
+    CREATE TABLE IF NOT EXISTS mod_users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER UNIQUE NOT NULL,
+      mod_level TEXT NOT NULL,
+      granted_by INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (granted_by) REFERENCES users(id) ON DELETE SET NULL
+    )
+  `);
+
+  // Audit log table - track moderator actions
+  await exec(`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      mod_user_id INTEGER NOT NULL,
+      action TEXT NOT NULL,
+      target_user_id INTEGER,
+      details TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (mod_user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (target_user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `);
 

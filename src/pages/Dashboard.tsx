@@ -50,7 +50,8 @@ export default function Dashboard() {
   const [showGuidedPrompt, setShowGuidedPrompt] = useState(false);
   const [showNiyyahModal, setShowNiyyahModal] = useState(false);
   const [showPremiumWelcome, setShowPremiumWelcome] = useState(false);
-  const [welcomePlan, setWelcomePlan] = useState<'yearly' | 'commitment' | 'lifetime' | 'monthly'>('monthly');
+  const [welcomePlan, setWelcomePlan] = useState<'yearly' | 'commitment' | 'lifetime' | 'monthly' | 'admin'>('monthly');
+  const [adminGrantInfo, setAdminGrantInfo] = useState<{ duration_days: number; note: string } | undefined>(undefined);
   const currentNiyyah = getCurrentNiyyah();
 
   // Check quiet mode on mount
@@ -169,6 +170,62 @@ export default function Dashboard() {
     }
   }, [user?.id, refreshPremium]);
 
+  // Detect admin premium grant and fetch notification details
+  useEffect(() => {
+    if (!user?.id || premiumLoading) return;
+
+    const checkKey = `premium_check_${user.id}`;
+    const lastCheck = sessionStorage.getItem(checkKey);
+    const now = Date.now();
+
+    // Only check if we haven't checked in the last 5 seconds
+    if (lastCheck && now - parseInt(lastCheck) < 5000) return;
+
+    sessionStorage.setItem(checkKey, now.toString());
+
+    const lastPremiumState = sessionStorage.getItem(`premium_${user.id}`);
+    const currentPremiumState = premiumStatus.active ? 'active' : 'inactive';
+
+    // Premium just became active - check if it's from admin grant
+    if (lastPremiumState === 'inactive' && currentPremiumState === 'active') {
+      const shownKey = `shown_welcome_${user.id}_${now}`;
+      if (!sessionStorage.getItem(shownKey)) {
+        // Fetch admin grant notification
+        fetch('/api/mod/admin-grant-notification', {
+          headers: {
+            'Authorization': `Bearer ${(window as any).Clerk?.session?.lastActiveToken?.jwt || ''}`
+          }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (data.hasGrant) {
+              // Admin grant - show with details
+              setWelcomePlan('admin');
+              setAdminGrantInfo({
+                duration_days: data.duration_days,
+                note: data.note
+              });
+              setShowPremiumWelcome(true);
+            } else {
+              // Generic premium activation (shouldn't happen in this flow, but fallback)
+              setWelcomePlan('admin');
+              setShowPremiumWelcome(true);
+            }
+            sessionStorage.setItem(shownKey, 'true');
+          })
+          .catch(error => {
+            console.error('Error fetching admin grant notification:', error);
+            // Fallback to generic admin grant
+            setWelcomePlan('admin');
+            setShowPremiumWelcome(true);
+            sessionStorage.setItem(shownKey, 'true');
+          });
+      }
+    }
+
+    sessionStorage.setItem(`premium_${user.id}`, currentPremiumState);
+  }, [user?.id, premiumStatus.active, premiumLoading]);
+
   const metrics = useMemo(() => {
     const checkins = readCheckins();
     const entries = Object.entries(checkins).sort(([a], [b]) => (a < b ? -1 : 1));
@@ -242,6 +299,7 @@ export default function Dashboard() {
           isOpen={showPremiumWelcome}
           onClose={() => setShowPremiumWelcome(false)}
           plan={welcomePlan}
+          adminGrantInfo={adminGrantInfo}
         />
 
         {/* Recovery Modal */}

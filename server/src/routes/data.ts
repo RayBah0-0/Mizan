@@ -1,6 +1,69 @@
 import { Router, Request, Response } from 'express';
 import { getDB, run } from '../database.js';
-import { authMiddleware } from '../auth.js';
+
+// Clerk auth middleware - auto-creates users if they don't exist
+async function clerkAuthMiddleware(req: Request, res: Response, next: any) {
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  const token = authHeader.substring(7);
+  
+  try {
+    // Decode JWT to get Clerk user ID
+    const base64Payload = token.split('.')[1];
+    const payload = JSON.parse(Buffer.from(base64Payload, 'base64').toString());
+    const clerkUserId = payload.sub;
+
+    if (!clerkUserId) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+
+    const db = getDB();
+    
+    // Try to find existing user
+    let result = await db.execute({
+      sql: 'SELECT id FROM users WHERE clerk_id = ?',
+      args: [clerkUserId]
+    });
+
+    let userId: number;
+
+    if (!result.rows || result.rows.length === 0) {
+      // User doesn't exist - create them with minimal info
+      console.log('Creating new user for Clerk ID:', clerkUserId);
+      
+      // Use temporary username - frontend will update with real data
+      const tempUsername = `user_${clerkUserId.slice(-8)}`;
+      
+      const insertResult = await db.execute({
+        sql: 'INSERT INTO users (clerk_id, username, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)',
+        args: [clerkUserId, tempUsername]
+      });
+      
+      userId = Number(insertResult.lastInsertRowid);
+      
+      // Create default settings
+      await db.execute({
+        sql: 'INSERT INTO settings (user_id, settings_json) VALUES (?, ?)',
+        args: [userId, JSON.stringify({ requireThreeOfFive: true })]
+      });
+      
+      console.log('✅ Created user:', userId, '(temp username - waiting for profile update)');
+    } else {
+      userId = result.rows[0].id as number;
+    }
+
+    (req as any).userId = userId;
+    (req as any).clerkUserId = clerkUserId;
+    next();
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+}
 
 type SummaryRange = '7d' | '14d' | '30d';
 
@@ -94,8 +157,8 @@ function paywallReason(isPremium: boolean, feature: string) {
 
 const router = Router();
 
-// Apply auth middleware to all routes
-router.use(authMiddleware);
+// Apply Clerk auth middleware to all routes
+router.use(clerkAuthMiddleware);
 
 async function getUserById(userId: number) {
   const db = getDB();
@@ -553,7 +616,7 @@ router.get('/report/monthly', async (req: Request, res: Response) => {
 });
 
 // Store activation code
-router.post('/activation-code', authMiddleware, async (req: Request, res: Response) => {
+router.post('/activation-code', async (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const { code, plan, expiresAt } = req.body;
 
@@ -575,7 +638,7 @@ router.post('/activation-code', authMiddleware, async (req: Request, res: Respon
 });
 
 // Validate activation code
-router.post('/validate-code', authMiddleware, async (req: Request, res: Response) => {
+router.post('/validate-code', async (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const { code } = req.body;
 
@@ -618,7 +681,7 @@ router.post('/validate-code', authMiddleware, async (req: Request, res: Response
 });
 
 // Get premium status from database
-router.get('/premium-status', authMiddleware, async (req: Request, res: Response) => {
+router.get('/premium-status', async (req: Request, res: Response) => {
   const userId = (req as any).userId;
 
   try {
@@ -659,7 +722,7 @@ router.get('/premium-status', authMiddleware, async (req: Request, res: Response
 });
 
 // Set premium status in database
-router.post('/set-premium', authMiddleware, async (req: Request, res: Response) => {
+router.post('/set-premium', async (req: Request, res: Response) => {
   const userId = (req as any).userId;
   const { plan, expiresAt } = req.body;
 
@@ -695,6 +758,46 @@ router.post('/set-premium', authMiddleware, async (req: Request, res: Response) 
   } catch (error) {
     console.error('Error setting premium:', error);
     res.status(500).json({ error: 'Failed to set premium' });
+  }
+});
+
+// Update user profile info (called by frontend with Clerk user data)
+router.post('/update-profile', clerkAuthMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { email, username } = req.body;
+
+    if (!email && !username) {
+      return res.status(400).json({ error: 'Email or username required' });
+    }
+
+    const db = getDB();
+    
+    // Build update query dynamically
+    const updates: string[] = [];
+    const args: any[] = [];
+    
+    if (email) {
+      updates.push('email = ?');
+      args.push(email);
+    }
+    
+    if (username) {
+      updates.push('username = ?');
+      args.push(username);
+    }
+    
+    args.push(userId);
+    
+    await db.execute({
+      sql: `UPDATE users SET ${updates.join(', ')} WHERE id = ?`,
+      args
+    });
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).json({ error: 'Failed to update profile' });
   }
 });
 
